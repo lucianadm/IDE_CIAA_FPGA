@@ -1,0 +1,17 @@
+INFORME DE SÍNTESIS, RUTEO Y TEMPORIZACIÓN
+==============================================
+Bitstream: secuencia_leds_vhdl.bin
+Tamaño del bitstream: 135100 bytes
+SHA-256: AEF93A23E428E13554251672C5D49FFBCC8E61C89CFEF44A2E9C535835929D65
+
+UTILIZACIÓN DEL FPGA
+Celdas lógicas: 42 / 7680 (0%)
+Bloques de RAM: 0 / 32 (0%)
+Entradas/salidas: 5 / 256 (1%)
+Buffers globales: 2 / 8 (25%)
+PLL: 0 / 2 (0%)
+Warmboot: 0 / 1 (0%)
+
+TEMPORIZACIÓN
+Frecuencia solicitada: 12 MHz
+Reloj clk12$SB_IO_IN_$glb_clk: máxima 156.69 MHz; objetivo 12.00 MHz; CUMPLE

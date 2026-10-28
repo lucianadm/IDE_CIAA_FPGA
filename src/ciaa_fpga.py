@@ -58,7 +58,7 @@ class Runner:
         self.log.write(text + "\n")
         self.log.flush()
 
-    def run(self, args: list[str], cwd: Path | None = None, description: str | None = None) -> None:
+    def run(self, args: list[str], cwd: Path | None = None, description: str | None = None) -> str:
         if description:
             self.write(f"\n== {description} ==")
         self.write("$ " + subprocess.list2cmdline([str(x) for x in args]))
@@ -68,14 +68,61 @@ class Runner:
             text=True, encoding="utf-8", errors="replace",
         )
         assert process.stdout is not None
+        captured: list[str] = []
         for line in process.stdout:
             line = line.rstrip("\r\n")
+            captured.append(line)
             print(line)
             self.log.write(line + "\n")
         code = process.wait()
         self.log.flush()
         if code != 0:
             raise IdeError(f"{description or args[0]} falló (código {code}).")
+        return "\n".join(captured)
+
+
+def synthesis_report(pnr_output: str, bitstream: Path, requested_mhz: str) -> str:
+    labels = {
+        "ICESTORM_LC": "Celdas lógicas",
+        "ICESTORM_RAM": "Bloques de RAM",
+        "SB_IO": "Entradas/salidas",
+        "SB_GB": "Buffers globales",
+        "ICESTORM_PLL": "PLL",
+        "SB_WARMBOOT": "Warmboot",
+    }
+    utilization: dict[str, tuple[int, int, int]] = {}
+    for match in re.finditer(r"(?m)^Info:\s+([A-Z0-9_]+):\s+(\d+)/\s*(\d+)\s+(\d+)%", pnr_output):
+        utilization[match.group(1)] = tuple(int(match.group(i)) for i in range(2, 5))
+
+    clocks: dict[str, tuple[float, str, float]] = {}
+    frequency_pattern = r"Max frequency for clock '([^']+)':\s+([0-9.]+) MHz \((PASS|FAIL) at ([0-9.]+) MHz\)"
+    for match in re.finditer(frequency_pattern, pnr_output):
+        clocks[match.group(1)] = (float(match.group(2)), match.group(3), float(match.group(4)))
+
+    lines = [
+        "INFORME DE SÍNTESIS, RUTEO Y TEMPORIZACIÓN",
+        "=" * 46,
+        f"Bitstream: {bitstream.name}",
+        f"Tamaño del bitstream: {bitstream.stat().st_size} bytes",
+        f"SHA-256: {sha256(bitstream)}",
+        "",
+        "UTILIZACIÓN DEL FPGA",
+    ]
+    for key, label in labels.items():
+        if key in utilization:
+            used, total, percent = utilization[key]
+            lines.append(f"{label}: {used} / {total} ({percent}%)")
+    if not utilization:
+        lines.append("No se pudo extraer la utilización del registro de nextpnr.")
+
+    lines.extend(("", "TEMPORIZACIÓN", f"Frecuencia solicitada: {requested_mhz} MHz"))
+    if clocks:
+        for clock, (maximum, result, target) in clocks.items():
+            status = "CUMPLE" if result == "PASS" else "NO CUMPLE"
+            lines.append(f"Reloj {clock}: máxima {maximum:.2f} MHz; objetivo {target:.2f} MHz; {status}")
+    else:
+        lines.append("No se encontró un reloj con restricción temporal en el diseño.")
+    return "\n".join(lines) + "\n"
 
 
 def load_project(filename: str) -> tuple[dict, Path]:
@@ -212,15 +259,20 @@ def synthesize(runner: Runner, config: dict, base: Path, output: Path) -> Path:
     package = device.get("package", "tq144:4k")
     frequency = str(device.get("frequency_mhz", 12))
     asc_file = output / f"{top}.asc"
-    runner.run([
+    pnr_output = runner.run([
         exe("nextpnr-ice40"), f"--{family}", "--package", package,
         "--json", str(json_file), "--pcf", str(pcf), "--asc", str(asc_file),
         "--freq", frequency,
     ], description="Asignación de pines, ruteo y temporización")
     bitstream = output / f"{top}.bin"
     runner.run([exe("icepack"), str(asc_file), str(bitstream)], description="Generar bitstream")
-    runner.write(f"BITSTREAM: {bitstream}")
-    runner.write(f"SHA-256: {sha256(bitstream)}")
+    report = synthesis_report(pnr_output, bitstream, frequency)
+    report_file = output / "informe_sintesis.txt"
+    report_file.write_text(report, encoding="utf-8")
+    runner.write("\n== INFORME FINAL ==")
+    for line in report.rstrip().splitlines():
+        runner.write(line)
+    runner.write(f"Informe guardado en: {report_file}")
     return bitstream
 
 

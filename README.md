@@ -8,6 +8,7 @@ Entorno reproducible para trabajar con la **EDU-CIAA-FPGA** desde Windows o Linu
 - sintetizar con Yosys;
 - asignar pines y rutear con nextpnr-ice40;
 - generar bitstreams con IceStorm;
+- mostrar y guardar un informe de utilización y frecuencia máxima;
 - identificar, respaldar, programar y comparar la Flash con `iceprog`.
 
 El repositorio completo incluye en `downloads` los paquetes oficiales necesarios para Windows y Linux. Después de clonarlo con Git LFS, puede instalar y ejecutar las herramientas sin conexión. El iniciador comprueba lo disponible, reutiliza los paquetes locales y solo intenta descargar algo si el archivo correspondiente falta o no supera la verificación SHA-256.
@@ -34,6 +35,8 @@ El destino configurado es la EDU-CIAA-FPGA con **Lattice iCE40HX4K-TQ144** y rel
 El selector admite varios archivos tanto para el diseño como para el testbench. La primera simulación es funcional RTL y no necesita el PCF. Después de una simulación correcta abre automáticamente el diagrama temporal. En VHDL también pregunta la duración máxima. En Verilog agrega un envoltorio de simulación que genera el archivo VCD aunque el testbench no incluya `$dumpfile` y `$dumpvars`. Se conservan los comandos de consola para automatizar el flujo mediante un `project.json`.
 
 El diagrama temporal de la simulación RTL no contiene los retardos físicos del FPGA. Durante el ruteo, nextpnr realiza análisis temporal estático y comprueba si el diseño cumple la frecuencia indicada en `frequency_mhz`. Este flujo no genera una simulación post-ruteo con retardos anotados.
+
+Al finalizar la síntesis se muestra en la consola un resumen con celdas lógicas, bloques de RAM, entradas/salidas, buffers globales, PLL, tamaño del bitstream y frecuencia máxima de cada reloj. El mismo contenido se conserva como `informe_sintesis.txt` dentro de la carpeta de salida.
 
 Si la copia incluye `downloads`, la primera ejecución extrae OSS CAD Suite y GHDL localmente sin acceder a Internet. Si esos paquetes fueron eliminados, puede descargar aproximadamente 600 MB para OSS CAD Suite y 24 MB para GHDL. Si encuentra una instalación válida de Apio, también puede reutilizarla.
 
