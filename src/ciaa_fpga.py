@@ -86,7 +86,7 @@ def load_project(filename: str) -> tuple[dict, Path]:
         data = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as error:
         raise IdeError(f"No se pudo leer {path}: {error}") from error
-    required = ("name", "language", "top", "sources", "pcf")
+    required = ("name", "language", "top", "sources")
     missing = [key for key in required if not data.get(key)]
     if missing:
         raise IdeError("Faltan campos del proyecto: " + ", ".join(missing))
@@ -202,6 +202,8 @@ def synthesize(runner: Runner, config: dict, base: Path, output: Path) -> Path:
     )
     runner.run([exe("yosys"), "-Q", "-q", "-s", str(ys_file)], description="Síntesis Yosys")
 
+    if not config.get("pcf"):
+        raise IdeError("La síntesis necesita un archivo PCF.")
     pcf = project_path(base, config["pcf"])
     if not pcf.is_file():
         raise IdeError(f"No existe el archivo PCF: {pcf}")

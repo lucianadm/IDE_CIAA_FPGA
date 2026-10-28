@@ -27,10 +27,13 @@ El destino configurado es la EDU-CIAA-FPGA con **Lattice iCE40HX4K-TQ144** y rel
 2. Ejecutar `IDE_CIAA_FPGA.bat`.
 3. Leer el cartel inicial y elegir VHDL o Verilog/SystemVerilog.
 4. Seleccionar juntos todos los archivos sintetizables del diseño e indicar inmediatamente el top level.
-5. Responder si se quiere simular. El testbench se solicita solamente cuando la respuesta es afirmativa.
-6. Seleccionar el archivo PCF y decidir si se programa la FPGA.
+5. Responder si se quiere ejecutar la simulación funcional RTL. El testbench se solicita solamente cuando la respuesta es afirmativa.
+6. Revisar el diagrama temporal, que se abre automáticamente si la simulación termina correctamente.
+7. Recién después seleccionar el archivo PCF para sintetizar y decidir si se programa la FPGA.
 
-El selector admite varios archivos tanto para el diseño como para el testbench. Después de una simulación correcta abre automáticamente el diagrama temporal. En VHDL también pregunta la duración máxima. En Verilog agrega un envoltorio de simulación que genera el archivo VCD aunque el testbench no incluya `$dumpfile` y `$dumpvars`. Se conservan los comandos de consola para automatizar el flujo mediante un `project.json`.
+El selector admite varios archivos tanto para el diseño como para el testbench. La primera simulación es funcional RTL y no necesita el PCF. Después de una simulación correcta abre automáticamente el diagrama temporal. En VHDL también pregunta la duración máxima. En Verilog agrega un envoltorio de simulación que genera el archivo VCD aunque el testbench no incluya `$dumpfile` y `$dumpvars`. Se conservan los comandos de consola para automatizar el flujo mediante un `project.json`.
+
+El diagrama temporal de la simulación RTL no contiene los retardos físicos del FPGA. Durante el ruteo, nextpnr realiza análisis temporal estático y comprueba si el diseño cumple la frecuencia indicada en `frequency_mhz`. Este flujo no genera una simulación post-ruteo con retardos anotados.
 
 Si la copia incluye `downloads`, la primera ejecución extrae OSS CAD Suite y GHDL localmente sin acceder a Internet. Si esos paquetes fueron eliminados, puede descargar aproximadamente 600 MB para OSS CAD Suite y 24 MB para GHDL. Si encuentra una instalación válida de Apio, también puede reutilizarla.
 

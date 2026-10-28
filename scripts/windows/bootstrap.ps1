@@ -26,6 +26,12 @@ function Test-Suite([string]$Path){
 function Download-Checked([string]$Url,[string]$Destination,[string]$Sha256){
  if(Test-Path -LiteralPath $Destination -PathType Leaf){
   if((Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash -eq $Sha256){return}
+  $firstLine=@(Get-Content -LiteralPath $Destination -TotalCount 1 -ErrorAction SilentlyContinue)
+  if($firstLine -match '^version https://git-lfs.github.com/spec/'){
+   Write-Host "El archivo $(Split-Path $Destination -Leaf) es solo un puntero de Git LFS. Se descargara el paquete real." -ForegroundColor Yellow
+  } else {
+   Write-Host "El archivo $(Split-Path $Destination -Leaf) no supera la verificacion SHA-256. Se descargara nuevamente." -ForegroundColor Yellow
+  }
   Move-Item -LiteralPath $Destination -Destination ($Destination+'.hash_incorrecto_'+(Get-Date -Format yyyyMMdd_HHmmssfff))
  }
  Write-Host "Descargando $(Split-Path $Destination -Leaf)..." -ForegroundColor Cyan
@@ -33,6 +39,16 @@ function Download-Checked([string]$Url,[string]$Destination,[string]$Sha256){
  if($curl){& $curl.Source -L --fail --retry 3 --output $Destination $Url; if($LASTEXITCODE -ne 0){throw 'La descarga fallo.'}}
  else {[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $Destination}
  if((Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash -ne $Sha256){throw "SHA-256 incorrecto: $Destination"}
+}
+function Test-Ghdl([string]$Path){
+ if(!(Test-Path -LiteralPath $Path -PathType Leaf)){return $false}
+ try {
+  $stream=[IO.File]::OpenRead($Path)
+  try {$first=$stream.ReadByte();$second=$stream.ReadByte()} finally {$stream.Dispose()}
+  if($first -ne 0x4D -or $second -ne 0x5A){return $false}
+  & $Path --version *> $null
+  return $LASTEXITCODE -eq 0
+ } catch {return $false}
 }
 
 if(!(Test-Suite $suiteLocal)){
@@ -59,13 +75,17 @@ if(!(Test-Suite $suiteLocal)){
 $ghdlVersion='6.0.0'
 $ghdlDir=Join-Path $tools "ghdl-$ghdlVersion"
 $ghdlExe=Join-Path $ghdlDir 'bin\ghdl.exe'
-if(!(Test-Path -LiteralPath $ghdlExe -PathType Leaf)){
+if(!(Test-Ghdl $ghdlExe)){
+ if(Test-Path -LiteralPath $ghdlDir){
+  Write-Host 'La copia local de GHDL no es un ejecutable valido. Se reparara automaticamente.' -ForegroundColor Yellow
+  Move-Item -LiteralPath $ghdlDir -Destination ($ghdlDir+'.invalido_'+(Get-Date -Format yyyyMMdd_HHmmssfff))
+ }
  $name="ghdl-mcode-$ghdlVersion-mingw64.zip"
  $archive=Join-Path $downloads $name
  Download-Checked "https://github.com/ghdl/ghdl/releases/download/v$ghdlVersion/$name" $archive 'C1562B2A4767E34D33159B536B5E36A8A38EBDB6E7672AA9969A4F4AC2CADFFE'
  $stage=Join-Path $tools ('extraer_ghdl_'+[guid]::NewGuid().ToString('N'))
  Expand-Archive -LiteralPath $archive -DestinationPath $stage
- if(!(Test-Path -LiteralPath (Join-Path $stage 'bin\ghdl.exe'))){throw 'El paquete de GHDL tiene una estructura inesperada.'}
+ if(!(Test-Ghdl (Join-Path $stage 'bin\ghdl.exe'))){throw 'El paquete de GHDL no contiene un ejecutable valido para Windows x64.'}
  Move-Item -LiteralPath $stage -Destination $ghdlDir
 }
 
@@ -87,11 +107,11 @@ if(!$python){throw 'No se encontro Python y la suite descargada tampoco lo conti
 
 Write-Host "Herramientas listas: $suite" -ForegroundColor Green
 if(!$IdeArguments.Count){
- $selection=& (Join-Path $PSScriptRoot 'seleccionar_diseno.ps1') -Root $root
- if(!$selection -or !$selection.ProjectFile){throw 'No se pudo preparar el proyecto VHDL seleccionado.'}
+ $selection=& (Join-Path $PSScriptRoot 'seleccionar_diseno.ps1') -Root $root -Python $python
+ if(!$selection -or !$selection.ProjectFile){throw 'No se pudo preparar el proyecto seleccionado.'}
  $arguments=@('build',$selection.ProjectFile)
- $arguments+=if($selection.Simulate){'--simulate'}else{'--no-simulate'}
- $arguments+=if($selection.View){'--view'}else{'--no-view'}
+ $arguments+='--no-simulate'
+ $arguments+='--no-view'
  if($selection.Program){$arguments+='--program'}
  & $python (Join-Path $root 'src\ciaa_fpga.py') @arguments
 } else {

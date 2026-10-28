@@ -1,0 +1,12 @@
+
+== Importar VHDL ==
+$ F:\jose\IDE_CIAA_FPGA\tools\ghdl-6.0.0\bin\ghdl.EXE -i --std=08 --workdir=F:\jose\IDE_CIAA_FPGA\build\test_sim_no_pcf_simulation\20261028_133831\ghdl_work F:\jose\IDE_CIAA_FPGA\examples\leds_vhdl\src\secuencia_leds_vhdl.vhd F:\jose\IDE_CIAA_FPGA\examples\leds_vhdl\sim\secuencia_leds_vhdl_tb.vhd
+
+== Elaborar testbench VHDL ==
+$ F:\jose\IDE_CIAA_FPGA\tools\ghdl-6.0.0\bin\ghdl.EXE -m --std=08 --workdir=F:\jose\IDE_CIAA_FPGA\build\test_sim_no_pcf_simulation\20261028_133831\ghdl_work secuencia_leds_vhdl_tb
+
+== Simular VHDL ==
+$ F:\jose\IDE_CIAA_FPGA\tools\ghdl-6.0.0\bin\ghdl.EXE -r --std=08 --workdir=F:\jose\IDE_CIAA_FPGA\build\test_sim_no_pcf_simulation\20261028_133831\ghdl_work secuencia_leds_vhdl_tb --assert-level=error --stop-time=500ns --wave=F:\jose\IDE_CIAA_FPGA\build\test_sim_no_pcf_simulation\20261028_133831\secuencia_leds_vhdl_tb.ghw
+F:\jose\IDE_CIAA_FPGA\examples\leds_vhdl\sim\secuencia_leds_vhdl_tb.vhd:27:9:@421ns:(report note): Secuencia VHDL comprobada
+simulation stopped @421ns
+SIMULACIÓN APROBADA.

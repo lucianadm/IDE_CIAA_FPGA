@@ -1,4 +1,7 @@
-param([Parameter(Mandatory=$true)][string]$Root)
+param(
+ [Parameter(Mandatory=$true)][string]$Root,
+ [Parameter(Mandatory=$true)][string]$Python
+)
 
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName System.Windows.Forms
@@ -58,7 +61,7 @@ $value=Read-Host "Top level del diseno para sintetizar (ENTER = $top)"
 if($value){$top=$value.Trim()}
 if($top -notmatch '^[A-Za-z_][A-Za-z0-9_$]*$'){throw 'Nombre de top level invalido.'}
 
-$doSimulation=Ask-YesNo 'Quiere simular el diseno antes de sintetizar?' "Simulacion $languageName"
+$doSimulation=Ask-YesNo 'Quiere ejecutar la simulacion funcional RTL antes de sintetizar?' "Simulacion funcional $languageName"
 $testFiles=@()
 $simulationTop=$null
 $stopTime='10ms'
@@ -94,6 +97,29 @@ if($doSimulation){
   [IO.File]::WriteAllText($wrapper,$wrapperText,[Text.UTF8Encoding]::new($false))
   $testFiles+=@($wrapper)
  }
+
+ $simulationProject=Join-Path $projectDir 'project_simulation.json'
+ $simulationConfig=[ordered]@{
+  name=($top+'_simulacion_funcional')
+  language=$language
+  top=$top
+  sources=@($designFiles)
+  include_dirs=@($designFiles | ForEach-Object {Split-Path $_} | Select-Object -Unique)
+  simulation=[ordered]@{
+   enabled=$true
+   sources=@($testFiles)
+   top=$simulationTop
+   stop_time=$stopTime
+   wave_file=$waveFile
+   open_viewer=$true
+  }
+ }
+ $simulationConfig | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $simulationProject -Encoding UTF8
+ Write-Host "`nSe ejecutara ahora la simulacion funcional RTL. Todavia no se necesita el archivo PCF." -ForegroundColor Cyan
+ & $Python (Join-Path $Root 'src\ciaa_fpga.py') simulate $simulationProject --view 2>&1 | ForEach-Object {Write-Host $_}
+ $simulationExit=$LASTEXITCODE
+ if($simulationExit -ne 0){throw "La simulacion funcional fallo (codigo $simulationExit). No se solicitara el PCF."}
+ Write-Host 'Simulacion funcional finalizada. A continuacion comienza la preparacion de la sintesis.' -ForegroundColor Green
 }
 
 $dialog.Multiselect=$false
@@ -129,7 +155,5 @@ $project | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $projectFile -Enco
 
 [pscustomobject]@{
  ProjectFile=$projectFile
- Simulate=$doSimulation
- View=$doSimulation
  Program=$doProgram
 }
