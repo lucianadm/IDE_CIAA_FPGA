@@ -1,0 +1,25 @@
+{
+  "name": "leds_vhdl",
+  "language": "vhdl",
+  "top": "secuencia_leds_vhdl",
+  "sources": ["src/secuencia_leds_vhdl.vhd"],
+  "pcf": "pins/edu_ciaa_leds.pcf",
+  "device": {
+    "nextpnr_device": "hx8k",
+    "package": "tq144:4k",
+    "frequency_mhz": 12
+  },
+  "simulation": {
+    "enabled": true,
+    "top": "secuencia_leds_vhdl_tb",
+    "sources": ["sim/secuencia_leds_vhdl_tb.vhd"],
+    "stop_time": "5us",
+    "open_viewer": true
+  },
+  "programmer": {
+    "vid": "0403",
+    "pid": "6010",
+    "index": 0,
+    "interface": "A"
+  }
+}

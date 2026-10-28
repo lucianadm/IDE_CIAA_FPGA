@@ -1,0 +1,25 @@
+{
+  "name": "leds_verilog",
+  "language": "verilog",
+  "top": "secuencia_leds",
+  "sources": ["src/secuencia_leds.v"],
+  "pcf": "pins/edu_ciaa_leds.pcf",
+  "device": {
+    "nextpnr_device": "hx8k",
+    "package": "tq144:4k",
+    "frequency_mhz": 12
+  },
+  "simulation": {
+    "enabled": true,
+    "top": "secuencia_leds_tb",
+    "sources": ["sim/secuencia_leds_tb.v"],
+    "wave_file": "secuencia_leds.vcd",
+    "open_viewer": true
+  },
+  "programmer": {
+    "vid": "0403",
+    "pid": "6010",
+    "index": 0,
+    "interface": "A"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "mi_proyecto",
+  "language": "verilog",
+  "top": "top",
+  "sources": ["src/top.v"],
+  "include_dirs": ["src"],
+  "pcf": "pins/edu_ciaa.pcf",
+  "device": {
+    "nextpnr_device": "hx8k",
+    "package": "tq144:4k",
+    "frequency_mhz": 12
+  },
+  "simulation": {
+    "enabled": true,
+    "top": "top_tb",
+    "sources": ["sim/top_tb.v"],
+    "wave_file": "top.vcd",
+    "open_viewer": true
+  },
+  "programmer": {
+    "vid": "0403",
+    "pid": "6010",
+    "index": 0,
+    "interface": "A"
+  }
+}

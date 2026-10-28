@@ -1,0 +1,10 @@
+/build/
+/backups/
+/downloads/
+/tools/
+*.log
+*.vcd
+*.ghw
+*.fst
+__pycache__/
+*.pyc
