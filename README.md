@@ -25,11 +25,12 @@ El destino configurado es la EDU-CIAA-FPGA con **Lattice iCE40HX4K-TQ144** y rel
 
 1. Descargar o clonar esta carpeta en una ruta sin caracteres extraños. No requiere una ubicación fija.
 2. Ejecutar `IDE_CIAA_FPGA.bat`.
-3. Seleccionar juntos todos los archivos VHDL sintetizables del diseño.
-4. Responder si se quiere simular. El testbench se solicita solamente cuando la respuesta es afirmativa.
-5. Seleccionar el archivo PCF y decidir si se programa la FPGA.
+3. Leer el cartel inicial y elegir VHDL o Verilog/SystemVerilog.
+4. Seleccionar juntos todos los archivos sintetizables del diseño e indicar inmediatamente el top level.
+5. Responder si se quiere simular. El testbench se solicita solamente cuando la respuesta es afirmativa.
+6. Seleccionar el archivo PCF y decidir si se programa la FPGA.
 
-El selector admite varios archivos VHDL tanto para el diseño como para el testbench. También pregunta la entidad principal, la duración máxima de la simulación y si debe abrir el diagrama temporal. Para usar un `project.json` o trabajar con Verilog se conservan los comandos de consola indicados más abajo.
+El selector admite varios archivos tanto para el diseño como para el testbench. Después de una simulación correcta abre automáticamente el diagrama temporal. En VHDL también pregunta la duración máxima. En Verilog agrega un envoltorio de simulación que genera el archivo VCD aunque el testbench no incluya `$dumpfile` y `$dumpvars`. Se conservan los comandos de consola para automatizar el flujo mediante un `project.json`.
 
 Si la copia incluye `downloads`, la primera ejecución extrae OSS CAD Suite y GHDL localmente sin acceder a Internet. Si esos paquetes fueron eliminados, puede descargar aproximadamente 600 MB para OSS CAD Suite y 24 MB para GHDL. Si encuentra una instalación válida de Apio, también puede reutilizarla.
 

@@ -87,7 +87,7 @@ if(!$python){throw 'No se encontro Python y la suite descargada tampoco lo conti
 
 Write-Host "Herramientas listas: $suite" -ForegroundColor Green
 if(!$IdeArguments.Count){
- $selection=& (Join-Path $PSScriptRoot 'seleccionar_vhdl.ps1') -Root $root
+ $selection=& (Join-Path $PSScriptRoot 'seleccionar_diseno.ps1') -Root $root
  if(!$selection -or !$selection.ProjectFile){throw 'No se pudo preparar el proyecto VHDL seleccionado.'}
  $arguments=@('build',$selection.ProjectFile)
  $arguments+=if($selection.Simulate){'--simulate'}else{'--no-simulate'}
