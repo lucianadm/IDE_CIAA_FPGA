@@ -1,0 +1,12 @@
+Proyecto: leds_verilog
+Salida: F:\jose\IDE_CIAA_FPGA\build\leds_verilog\20261028_091624
+
+== Compilar simulación Verilog ==
+$ C:\Users\lucianaPC\.apio\packages\oss-cad-suite\bin\iverilog.EXE -g2012 -s secuencia_leds_tb -o F:\jose\IDE_CIAA_FPGA\build\leds_verilog\20261028_091624\simulation.vvp F:\jose\IDE_CIAA_FPGA\examples\leds_verilog\src\secuencia_leds.v F:\jose\IDE_CIAA_FPGA\examples\leds_verilog\sim\secuencia_leds_tb.v
+
+== Simular Verilog ==
+$ C:\Users\lucianaPC\.apio\packages\oss-cad-suite\bin\vvp.EXE F:\jose\IDE_CIAA_FPGA\build\leds_verilog\20261028_091624\simulation.vvp
+VCD info: dumpfile secuencia_leds.vcd opened for output.
+ERROR: esperado 0001, recibido xxxx
+FATAL: F:\jose\IDE_CIAA_FPGA\examples\leds_verilog\sim\secuencia_leds_tb.v:17: 
+       Time: 1000  Scope: secuencia_leds_tb.comprobar

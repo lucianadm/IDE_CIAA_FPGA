@@ -1,0 +1,3 @@
+read_verilog -sv "F:/jose/IDE_CIAA_FPGA/build/leds_vhdl/20261028_091614/secuencia_leds_vhdl_from_vhdl.v"
+synth_ice40 -top secuencia_leds_vhdl -json "F:/jose/IDE_CIAA_FPGA/build/leds_vhdl/20261028_091614/secuencia_leds_vhdl.json"
+check -assert

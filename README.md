@@ -10,7 +10,9 @@ Entorno reproducible para trabajar con la **EDU-CIAA-FPGA** desde Windows o Linu
 - generar bitstreams con IceStorm;
 - identificar, respaldar, programar y comparar la Flash con `iceprog`.
 
-No incluye binarios grandes en Git. El primer inicio comprueba las herramientas y descarga únicamente lo que falta, usando versiones fijas y SHA-256 verificados.
+El repositorio completo incluye en `downloads` los paquetes oficiales necesarios para Windows y Linux. Después de clonarlo con Git LFS, puede instalar y ejecutar las herramientas sin conexión. El iniciador comprueba lo disponible, reutiliza los paquetes locales y solo intenta descargar algo si el archivo correspondiente falta o no supera la verificación SHA-256.
+
+> Para una copia realmente autocontenida no use el botón **Download ZIP** de GitHub. Clone el repositorio con Git LFS o descargue una publicación que incluya los binarios completos. Los archivos señalados por Git LFS deben descargarse mientras todavía haya conexión.
 
 ## Sistemas admitidos
 
@@ -26,7 +28,7 @@ El destino configurado es la EDU-CIAA-FPGA con **Lattice iCE40HX4K-TQ144** y rel
 3. En el menú elegir el ejemplo VHDL o Verilog.
 4. Decidir si se quiere simular, abrir el diagrama y programar.
 
-La primera ejecución puede descargar aproximadamente 600 MB para OSS CAD Suite y 24 MB para GHDL. Si encuentra una instalación válida de Apio, la reutiliza.
+Si la copia incluye `downloads`, la primera ejecución extrae OSS CAD Suite y GHDL localmente sin acceder a Internet. Si esos paquetes fueron eliminados, puede descargar aproximadamente 600 MB para OSS CAD Suite y 24 MB para GHDL. Si encuentra una instalación válida de Apio, también puede reutilizarla.
 
 Para usar la placa, **FT2232H Interface A / MI_00** debe tener WinUSB. **Interface B / MI_01** debe conservar el controlador FTDI si se utilizará como puerto UART. El entorno nunca cambia controladores automáticamente.
 
@@ -116,7 +118,7 @@ IDE_CIAA_FPGA/
 └── docs/                           documentación
 ```
 
-`tools`, `downloads`, `build` y `backups` se generan localmente y no deben subirse a Git.
+`downloads` contiene los instaladores verificados para poder preparar otra computadora sin conexión. `tools` y `build` se conservan también en la distribución completa. `backups` permanece excluida porque puede contener el diseño previo leído de una placa particular.
 
 ## Herramientas de terceros
 

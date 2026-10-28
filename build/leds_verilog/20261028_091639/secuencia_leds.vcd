@@ -1,0 +1,207 @@
+$date
+	Wed Oct 28 09:16:39 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module secuencia_leds_tb $end
+$var wire 4 ! leds [3:0] $end
+$var wire 1 " LED3 $end
+$var wire 1 # LED2 $end
+$var wire 1 $ LED1 $end
+$var wire 1 % LED0 $end
+$var reg 1 & clk12 $end
+$scope module dut $end
+$var wire 1 & clk12 $end
+$var wire 1 " LED3 $end
+$var wire 1 # LED2 $end
+$var wire 1 $ LED1 $end
+$var wire 1 % LED0 $end
+$var parameter 32 ' CICLOS_POR_PASO $end
+$var reg 22 ( contador [21:0] $end
+$var reg 3 ) paso [2:0] $end
+$var reg 4 * patron [3:0] $end
+$upscope $end
+$scope task comprobar $end
+$var reg 4 + esperado [3:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b11 '
+$end
+#0
+$dumpvars
+bx +
+b1 *
+b0 )
+b0 (
+0&
+1%
+0$
+0#
+0"
+b1 !
+$end
+#10000
+b1 (
+1&
+#11000
+b1 +
+#20000
+0&
+#30000
+b10 (
+1&
+#40000
+0&
+#50000
+b10 !
+1$
+0%
+b10 *
+b1 )
+b0 (
+1&
+#60000
+0&
+#70000
+b1 (
+1&
+#71000
+b10 +
+#80000
+0&
+#90000
+b10 (
+1&
+#100000
+0&
+#110000
+b100 !
+1#
+0$
+b100 *
+b10 )
+b0 (
+1&
+#120000
+0&
+#130000
+b1 (
+1&
+#131000
+b100 +
+#140000
+0&
+#150000
+b10 (
+1&
+#160000
+0&
+#170000
+b1000 !
+1"
+0#
+b1000 *
+b11 )
+b0 (
+1&
+#180000
+0&
+#190000
+b1 (
+1&
+#191000
+b1000 +
+#200000
+0&
+#210000
+b10 (
+1&
+#220000
+0&
+#230000
+b100 !
+0"
+1#
+b100 *
+b100 )
+b0 (
+1&
+#240000
+0&
+#250000
+b1 (
+1&
+#251000
+b100 +
+#260000
+0&
+#270000
+b10 (
+1&
+#280000
+0&
+#290000
+b10 !
+0#
+1$
+b10 *
+b101 )
+b0 (
+1&
+#300000
+0&
+#310000
+b1 (
+1&
+#311000
+b10 +
+#320000
+0&
+#330000
+b10 (
+1&
+#340000
+0&
+#350000
+b1 !
+0$
+1%
+b1 *
+b0 )
+b0 (
+1&
+#360000
+0&
+#370000
+b1 (
+1&
+#371000
+b1 +
+#380000
+0&
+#390000
+b10 (
+1&
+#400000
+0&
+#410000
+b10 !
+1$
+0%
+b10 *
+b1 )
+b0 (
+1&
+#420000
+0&
+#430000
+b1 (
+1&
+#431000

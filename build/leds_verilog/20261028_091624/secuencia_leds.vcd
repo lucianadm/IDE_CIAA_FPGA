@@ -1,0 +1,51 @@
+$date
+	Wed Oct 28 09:16:25 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module secuencia_leds_tb $end
+$var wire 4 ! leds [3:0] $end
+$var wire 1 " LED3 $end
+$var wire 1 # LED2 $end
+$var wire 1 $ LED1 $end
+$var wire 1 % LED0 $end
+$var reg 1 & clk12 $end
+$scope module dut $end
+$var wire 1 & clk12 $end
+$var wire 1 " LED3 $end
+$var wire 1 # LED2 $end
+$var wire 1 $ LED1 $end
+$var wire 1 % LED0 $end
+$var parameter 32 ' CICLOS_POR_PASO $end
+$var reg 22 ( contador [21:0] $end
+$var reg 3 ) paso [2:0] $end
+$var reg 4 * patron [3:0] $end
+$upscope $end
+$scope task comprobar $end
+$var reg 4 + esperado [3:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b11 '
+$end
+#0
+$dumpvars
+bx +
+bx *
+b0 )
+b0 (
+0&
+x%
+x$
+x#
+x"
+bx !
+$end
+#1000
+b1 +
