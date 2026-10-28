@@ -83,7 +83,7 @@ def load_project(filename: str) -> tuple[dict, Path]:
     if not path.is_file():
         raise IdeError(f"No existe el proyecto: {path}")
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as error:
         raise IdeError(f"No se pudo leer {path}: {error}") from error
     required = ("name", "language", "top", "sources", "pcf")
