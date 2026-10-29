@@ -334,6 +334,44 @@ def program_flash(runner: Runner, bitstream: Path, programmer: dict | None = Non
     runner.write("PROGRAMACIÓN Y COMPARACIÓN APROBADAS.")
 
 
+def publish_synthesis_results(runner: Runner, config: dict, base: Path, output: Path, bitstream: Path) -> tuple[Path, Path]:
+    report = output / "informe_sintesis.txt"
+    if not report.is_file():
+        raise IdeError(f"No se encontró el informe de síntesis: {report}")
+    value = config.get("results_dir")
+    if not value:
+        return report, bitstream
+    destination = project_path(base, value)
+    destination.mkdir(parents=True, exist_ok=True)
+    stamp = output.name
+    top = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(config["top"]))
+    published_report = destination / f"{top}_informe_sintesis_{stamp}.txt"
+    published_bitstream = destination / f"{top}_{stamp}.bin"
+    shutil.copy2(report, published_report)
+    shutil.copy2(bitstream, published_bitstream)
+    runner.write(f"Informe copiado junto al top level: {published_report}")
+    runner.write(f"Bitstream copiado junto al top level: {published_bitstream}")
+    return published_report, published_bitstream
+
+
+def show_synthesis_report(report: Path, bitstream: Path, will_program: bool) -> None:
+    if platform.system() != "Windows":
+        return
+    powershell = shutil.which("powershell.exe") or shutil.which("powershell")
+    script = ROOT / "scripts" / "windows" / "mostrar_informe_sintesis.ps1"
+    if not powershell or not script.is_file():
+        raise IdeError("No se pudo abrir la ventana con los resultados de síntesis.")
+    command = [
+        powershell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script),
+        "-ReportFile", str(report), "-BitstreamFile", str(bitstream),
+    ]
+    if will_program:
+        command.append("-WillProgram")
+    result = subprocess.run(command, check=False)
+    if result.returncode != 0:
+        raise IdeError(f"La ventana del informe de síntesis falló (código {result.returncode}).")
+
+
 def create_output(name: str) -> Path:
     safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", name)
     output = BUILD_ROOT / safe / datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -365,6 +403,9 @@ def build_project(project: str, simulate: bool | None, view: bool | None, progra
         else:
             runner.write("SIMULACIÓN OMITIDA.")
         bitstream = synthesize(runner, config, base, output)
+        published_report, published_bitstream = publish_synthesis_results(runner, config, base, output, bitstream)
+        if config.get("show_synthesis_report", False):
+            show_synthesis_report(published_report, published_bitstream, program)
         if program:
             program_flash(runner, bitstream, config.get("programmer"))
         else:

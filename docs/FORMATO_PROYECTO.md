@@ -10,6 +10,17 @@
 | `sources` | Lista de fuentes sintetizables. No incluir el testbench. |
 | `pcf` | Archivo de asignación de pines. |
 
+## Resultados de síntesis
+
+```json
+"results_dir": "src",
+"show_synthesis_report": true
+```
+
+- `results_dir` es opcional. Copia allí el informe y el bitstream con fecha y hora, sin sobrescribir ejecuciones anteriores.
+- `show_synthesis_report` abre en Windows una ventana con el informe antes de programar la FPGA.
+- El asistente interactivo configura automáticamente `results_dir` con la carpeta del archivo que contiene el top level.
+
 ## Dispositivo
 
 Para EDU-CIAA-FPGA se utiliza:

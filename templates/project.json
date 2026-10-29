@@ -5,6 +5,8 @@
   "sources": ["src/top.v"],
   "include_dirs": ["src"],
   "pcf": "pins/edu_ciaa.pcf",
+  "results_dir": "src",
+  "show_synthesis_report": false,
   "device": {
     "nextpnr_device": "hx8k",
     "package": "tq144:4k",

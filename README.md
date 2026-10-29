@@ -37,7 +37,7 @@ El selector admite varios archivos tanto para el diseño como para el testbench.
 
 El diagrama temporal de la simulación RTL no contiene los retardos físicos del FPGA. Durante el ruteo, nextpnr realiza análisis temporal estático y comprueba si el diseño cumple la frecuencia indicada en `frequency_mhz`. Este flujo no genera una simulación post-ruteo con retardos anotados.
 
-Al finalizar la síntesis se muestra en la consola un resumen con celdas lógicas, bloques de RAM, entradas/salidas, buffers globales, PLL, tamaño del bitstream y frecuencia máxima de cada reloj. El mismo contenido se conserva como `informe_sintesis.txt` dentro de la carpeta de salida.
+Al finalizar la síntesis se muestra un resumen con celdas lógicas, bloques de RAM, entradas/salidas, buffers globales, PLL, tamaño del bitstream y frecuencia máxima de cada reloj. En el asistente de Windows, antes de programar aparece una ventana con el informe completo. El informe y el `.bin` se copian con fecha y hora junto al archivo que contiene el top level; también permanecen en la carpeta interna `build`.
 
 Si la copia incluye `downloads`, la primera ejecución extrae OSS CAD Suite y GHDL localmente sin acceder a Internet. Si esos paquetes fueron eliminados, puede descargar aproximadamente 600 MB para OSS CAD Suite y 24 MB para GHDL. Si encuentra una instalación válida de Apio, también puede reutilizarla.
 

@@ -21,6 +21,15 @@ function Find-Top([string[]]$Files,[string]$Preferred,[string]$Language){
  return $Preferred
 }
 
+function Find-TopSource([string[]]$Files,[string]$Top,[string]$Language){
+ $escaped=[regex]::Escape($Top)
+ $pattern=if($Language -eq 'vhdl'){"(?im)^\s*entity\s+$escaped\s+is\b"}else{"(?im)^\s*module\s+(?:automatic\s+)?$escaped\b"}
+ foreach($file in $Files){
+  if([regex]::IsMatch([IO.File]::ReadAllText($file),$pattern)){return $file}
+ }
+ return $Files[0]
+}
+
 function Ask-YesNo([string]$Question,[string]$Title){
  $answer=[System.Windows.Forms.MessageBox]::Show(
   $Question,$Title,
@@ -216,6 +225,8 @@ $top=Find-Top $designFiles ([IO.Path]::GetFileNameWithoutExtension($designFiles[
 $value=Read-Host "Top level del diseno para sintetizar (ENTER = $top)"
 if($value){$top=$value.Trim()}
 if($top -notmatch '^[A-Za-z_][A-Za-z0-9_$]*$'){throw 'Nombre de top level invalido.'}
+$topSource=Find-TopSource $designFiles $top $language
+$resultsDirectory=Split-Path -Parent $topSource
 
 $doSimulation=Ask-YesNo 'Quiere ejecutar la simulacion funcional RTL antes de sintetizar?' "Simulacion funcional $languageName"
 $testFiles=@()
@@ -298,6 +309,8 @@ $project=[ordered]@{
  sources=@($designFiles)
  include_dirs=$includeDirs
  pcf=$pcf
+ results_dir=$resultsDirectory
+ show_synthesis_report=$true
  device=[ordered]@{nextpnr_device='hx8k';package='tq144:4k';frequency_mhz=12}
  programmer=[ordered]@{vid='0403';pid='6010';index=0;interface='A'}
  simulation=[ordered]@{
