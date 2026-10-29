@@ -84,8 +84,22 @@ function Test-Programmer {
   @('-d','i:0x0403:0x6010:0','-I','A','-t')
  )
  foreach($arguments in $selectors){
-  & $iceprog.Source @arguments *> $null
-  if($LASTEXITCODE -eq 0){return $true}
+  $startInfo=New-Object System.Diagnostics.ProcessStartInfo
+  $startInfo.FileName=$iceprog.Source
+  $startInfo.Arguments=$arguments -join ' '
+  $startInfo.UseShellExecute=$false
+  $startInfo.CreateNoWindow=$true
+  $startInfo.RedirectStandardOutput=$true
+  $startInfo.RedirectStandardError=$true
+  $process=New-Object System.Diagnostics.Process
+  $process.StartInfo=$startInfo
+  if(!$process.Start()){continue}
+  $stdout=$process.StandardOutput.ReadToEndAsync()
+  $stderr=$process.StandardError.ReadToEndAsync()
+  $process.WaitForExit()
+  [void]$stdout.Result
+  [void]$stderr.Result
+  if($process.ExitCode -eq 0){return $true}
  }
  return $false
 }
