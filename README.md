@@ -22,6 +22,23 @@ El repositorio completo incluye en `downloads` los paquetes oficiales necesarios
 
 El destino configurado es la EDU-CIAA-FPGA con **Lattice iCE40HX4K-TQ144** y reloj de 12 MHz. nextpnr representa esta variante mediante `--hx8k --package tq144:4k`.
 
+## Recursos de la FPGA
+
+La capacidad oficial del dispositivo `iCE40HX4K-TQ144` es:
+
+| Recurso | Cantidad |
+|---|---:|
+| Celdas lógicas LUT4 + flip-flop | 3.520 |
+| Bloques de RAM `RAM4K` | 20 |
+| RAM embebida total | 80 Kbit (10 KiB) |
+| PLL | 2 |
+| Redes globales de reloj | 8 |
+| Bloques DSP o multiplicadores dedicados | 0 |
+
+Cada bloque `RAM4K` almacena 4.096 bits y admite distintas organizaciones de ancho y profundidad. Yosys puede inferirlos a partir de una memoria sincrónica escrita de manera compatible. Los PLL se utilizan mediante primitivas como `SB_PLL40_CORE` o `SB_PLL40_PAD`; no se infieren a partir de un divisor común. Como no hay bloques DSP, las multiplicaciones se implementan con lógica y registros.
+
+La base abierta utilizada por nextpnr identifica este encapsulado mediante `hx8k/tq144:4k` y puede informar 7.680 celdas y 32 bloques RAM. Esas cifras corresponden a la representación de la herramienta. Para dimensionar un diseño conforme a la especificación del componente se deben usar los límites oficiales del HX4K: 3.520 celdas, 20 RAM y 2 PLL. Fuente: [iCE40 LP/HX Family Data Sheet de Lattice](https://www.latticesemi.com/-/media/LatticeSemi/Documents/DataSheets/iCE/FPGA-DS-02029-4-3-iCE40-LP-HX-Family-Data-Sheet.ashx?document_id=49312).
+
 ## Inicio rápido en Windows
 
 1. Descargar o clonar esta carpeta en una ruta sin caracteres extraños. No requiere una ubicación fija.
@@ -125,9 +142,25 @@ IDE_CIAA_FPGA/
 ├── scripts/linux/                instalación y permisos Linux
 ├── examples/leds_vhdl/           ejemplo VHDL con testbench
 ├── examples/leds_verilog/         ejemplo Verilog con testbench
+├── examples/botones_leds_vhdl/   secuencias seleccionadas con pulsadores
+├── examples/botones_leds_verilog/ mismo ejemplo escrito en Verilog
 ├── templates/project.json         plantilla de proyecto
 └── docs/                           documentación
 ```
+
+### Ejemplos con pulsadores
+
+Los proyectos `botones_leds_vhdl` y `botones_leds_verilog` implementan el mismo comportamiento. Los botones son activos en nivel bajo:
+
+| Entrada | Comportamiento de los LED |
+|---|---|
+| Ninguna | Un LED rebota entre ambos extremos. |
+| `BTN1` | Un LED se desplaza de LED0 hacia LED3. |
+| `BTN2` | Un LED se desplaza de LED3 hacia LED0. |
+| `BTN3` | Los cuatro LED muestran un contador binario. |
+| `BTN4` | Alterna los patrones `0101` y `1010`. |
+
+Si se mantienen varios botones presionados, la prioridad es `BTN4`, `BTN3`, `BTN2` y `BTN1`. Cada proyecto contiene el fuente, el PCF y un testbench que comprueba los cinco modos.
 
 `downloads` contiene los instaladores verificados para poder preparar otra computadora sin conexión. `tools` y `build` se conservan también en la distribución completa. `backups` permanece excluida porque puede contener el diseño previo leído de una placa particular.
 

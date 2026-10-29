@@ -1,0 +1,25 @@
+{
+  "name": "botones_leds_verilog",
+  "language": "verilog",
+  "top": "botones_leds_verilog",
+  "sources": ["src/botones_leds_verilog.v"],
+  "pcf": "pins/edu_ciaa_botones_leds.pcf",
+  "device": {
+    "nextpnr_device": "hx8k",
+    "package": "tq144:4k",
+    "frequency_mhz": 12
+  },
+  "simulation": {
+    "enabled": true,
+    "top": "botones_leds_verilog_tb",
+    "sources": ["sim/botones_leds_verilog_tb.v"],
+    "wave_file": "botones_leds_verilog.vcd",
+    "open_viewer": true
+  },
+  "programmer": {
+    "vid": "0403",
+    "pid": "6010",
+    "index": 0,
+    "interface": "A"
+  }
+}

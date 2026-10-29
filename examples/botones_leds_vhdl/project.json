@@ -1,0 +1,25 @@
+{
+  "name": "botones_leds_vhdl",
+  "language": "vhdl",
+  "top": "botones_leds_vhdl",
+  "sources": ["src/botones_leds_vhdl.vhd"],
+  "pcf": "pins/edu_ciaa_botones_leds.pcf",
+  "device": {
+    "nextpnr_device": "hx8k",
+    "package": "tq144:4k",
+    "frequency_mhz": 12
+  },
+  "simulation": {
+    "enabled": true,
+    "top": "botones_leds_vhdl_tb",
+    "sources": ["sim/botones_leds_vhdl_tb.vhd"],
+    "stop_time": "30us",
+    "open_viewer": true
+  },
+  "programmer": {
+    "vid": "0403",
+    "pid": "6010",
+    "index": 0,
+    "interface": "A"
+  }
+}
