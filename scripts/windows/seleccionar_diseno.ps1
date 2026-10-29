@@ -5,6 +5,7 @@ param(
 
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
 
 function Find-Top([string[]]$Files,[string]$Preferred,[string]$Language){
  $names=New-Object System.Collections.Generic.List[string]
@@ -29,6 +30,51 @@ function Ask-YesNo([string]$Question,[string]$Title){
  return $answer -eq [System.Windows.Forms.DialogResult]::Yes
 }
 
+function Select-Language {
+ $form=New-Object System.Windows.Forms.Form
+ $form.Text='Lenguaje del diseno'
+ $form.StartPosition='CenterScreen'
+ $form.FormBorderStyle=[System.Windows.Forms.FormBorderStyle]::FixedDialog
+ $form.ClientSize=New-Object System.Drawing.Size(430,155)
+ $form.MaximizeBox=$false
+ $form.MinimizeBox=$false
+ $form.ShowInTaskbar=$false
+ $form.TopMost=$true
+
+ $label=New-Object System.Windows.Forms.Label
+ $label.Text='Seleccione el lenguaje de los archivos que va a cargar:'
+ $label.AutoSize=$true
+ $label.Location=New-Object System.Drawing.Point(22,25)
+ $form.Controls.Add($label)
+
+ $vhdl=New-Object System.Windows.Forms.Button
+ $vhdl.Text='VHDL'
+ $vhdl.Size=New-Object System.Drawing.Size(115,36)
+ $vhdl.Location=New-Object System.Drawing.Point(22,82)
+ $vhdl.Add_Click({$form.Tag='vhdl';$form.DialogResult=[System.Windows.Forms.DialogResult]::OK;$form.Close()})
+ $form.Controls.Add($vhdl)
+
+ $verilog=New-Object System.Windows.Forms.Button
+ $verilog.Text='Verilog'
+ $verilog.Size=New-Object System.Drawing.Size(115,36)
+ $verilog.Location=New-Object System.Drawing.Point(157,82)
+ $verilog.Add_Click({$form.Tag='verilog';$form.DialogResult=[System.Windows.Forms.DialogResult]::OK;$form.Close()})
+ $form.Controls.Add($verilog)
+
+ $cancel=New-Object System.Windows.Forms.Button
+ $cancel.Text='Cancelar'
+ $cancel.Size=New-Object System.Drawing.Size(115,36)
+ $cancel.Location=New-Object System.Drawing.Point(292,82)
+ $cancel.Add_Click({$form.DialogResult=[System.Windows.Forms.DialogResult]::Cancel;$form.Close()})
+ $form.Controls.Add($cancel)
+
+ $form.AcceptButton=$vhdl
+ $form.CancelButton=$cancel
+ $result=$form.ShowDialog()
+ if($result -ne [System.Windows.Forms.DialogResult]::OK -or !$form.Tag){throw 'Operacion cancelada.'}
+ return [string]$form.Tag
+}
+
 [void][System.Windows.Forms.MessageBox]::Show(
  "Este asistente permite compilar un diseno VHDL o Verilog para la EDU-CIAA-FPGA.`n`nPrimero seleccione el lenguaje y despues TODOS los archivos fuente del diseno.",
  'IDE CIAA FPGA',
@@ -36,14 +82,7 @@ function Ask-YesNo([string]$Question,[string]$Title){
  [System.Windows.Forms.MessageBoxIcon]::Information
 )
 
-$languageAnswer=[System.Windows.Forms.MessageBox]::Show(
- "Seleccione el lenguaje del diseno:`n`nSI = VHDL`nNO = Verilog o SystemVerilog`nCANCELAR = salir",
- 'Lenguaje del diseno',
- [System.Windows.Forms.MessageBoxButtons]::YesNoCancel,
- [System.Windows.Forms.MessageBoxIcon]::Question
-)
-if($languageAnswer -eq [System.Windows.Forms.DialogResult]::Cancel){throw 'Operacion cancelada.'}
-$language=if($languageAnswer -eq [System.Windows.Forms.DialogResult]::Yes){'vhdl'}else{'verilog'}
+$language=Select-Language
 $languageName=if($language -eq 'vhdl'){'VHDL'}else{'Verilog/SystemVerilog'}
 $filter=if($language -eq 'vhdl'){'Fuentes VHDL (*.vhd;*.vhdl)|*.vhd;*.vhdl'}else{'Fuentes Verilog (*.v;*.sv)|*.v;*.sv'}
 
@@ -122,6 +161,8 @@ if($doSimulation){
  Write-Host 'Simulacion funcional finalizada. A continuacion comienza la preparacion de la sintesis.' -ForegroundColor Green
 }
 
+$doProgram=Ask-YesNo 'Quiere programar la FPGA despues de sintetizar?' 'Programar FPGA'
+
 $dialog.Multiselect=$false
 $dialog.FileName=''
 $dialog.InitialDirectory=Split-Path $designFiles[0]
@@ -130,7 +171,6 @@ $dialog.Title='Seleccione el archivo de asignacion de pines PCF'
 if($dialog.ShowDialog() -ne 'OK'){throw 'Seleccion del archivo PCF cancelada.'}
 $pcf=$dialog.FileName
 
-$doProgram=Ask-YesNo 'Quiere programar la FPGA despues de sintetizar?' 'Programar FPGA'
 $projectFile=Join-Path $projectDir 'project.json'
 $includeDirs=@($designFiles | ForEach-Object {Split-Path $_} | Select-Object -Unique)
 $project=[ordered]@{

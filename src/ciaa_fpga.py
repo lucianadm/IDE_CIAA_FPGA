@@ -282,18 +282,53 @@ def program_flash(runner: Runner, bitstream: Path, programmer: dict | None = Non
     pid = programmer.get("pid", "6010")
     index = str(programmer.get("index", 0))
     interface = programmer.get("interface", "A")
-    device = f"i:0x{vid}:0x{pid}:{index}"
-    runner.run([exe("iceprog"), "-d", device, "-I", interface, "-t"], description="Identificar Flash")
+    explicit_device = f"i:0x{vid}:0x{pid}:{index}"
+    generic_device = f"i:0x{vid}:0x{pid}"
+    candidates = [
+        (generic_device, ["-d", generic_device, "-I", interface]),
+        ("selector automatico", ["-I", interface]),
+        (explicit_device, ["-d", explicit_device, "-I", interface]),
+    ]
+    selected_args: list[str] | None = None
+    attempted: set[tuple[str, ...]] = set()
+    for label, candidate_args in candidates:
+        key = tuple(candidate_args)
+        if key in attempted:
+            continue
+        attempted.add(key)
+        try:
+            runner.run([exe("iceprog"), *candidate_args, "-t"], description=f"Identificar Flash ({label})")
+            selected_args = candidate_args
+            break
+        except IdeError:
+            runner.write(f"No se pudo acceder con {label}; se probara el siguiente selector.")
+    if selected_args is None:
+        if platform.system() == "Windows":
+            message = (
+                "No se pudo abrir el programador FT2232H de la EDU-CIAA-FPGA. "
+                "Abra Zadig, active Options > List All Devices, seleccione solamente "
+                "Dual RS232-HS (Interface 0), compruebe USB ID 0403:6010 e interfaz 00, "
+                "elija WinUSB y pulse Replace Driver. No cambie Interface 1, porque corresponde "
+                "al puerto serie. Despues desconecte y vuelva a conectar la placa, cierre otros "
+                "programadores y repita la operacion."
+            )
+        else:
+            message = (
+                "No se pudo abrir el programador FT2232H de la EDU-CIAA-FPGA. "
+                "Compruebe el cable, cierre otros programadores y ejecute "
+                "scripts/linux/install_udev_rules.sh para instalar los permisos USB."
+            )
+        raise IdeError(message)
     backup_dir = ROOT / "backups"
     backup_dir.mkdir(exist_ok=True)
     backup = backup_dir / f"flash_{datetime.now().strftime('%Y%m%d_%H%M%S')}.bin"
-    runner.run([exe("iceprog"), "-d", device, "-I", interface, "-R", "512k", str(backup)], description="Respaldar Flash")
+    runner.run([exe("iceprog"), *selected_args, "-R", "512k", str(backup)], description="Respaldar Flash")
     if backup.stat().st_size != 524288:
         raise IdeError("El respaldo de Flash no tiene 524288 bytes. Se canceló la escritura.")
     runner.write(f"Respaldo: {backup} | SHA-256: {sha256(backup)}")
-    runner.run([exe("iceprog"), "-d", device, "-I", interface, str(bitstream)], description="Programar Flash")
+    runner.run([exe("iceprog"), *selected_args, str(bitstream)], description="Programar Flash")
     verify = bitstream.parent / "flash_verification.bin"
-    runner.run([exe("iceprog"), "-d", device, "-I", interface, "-R", str(bitstream.stat().st_size), str(verify)], description="Leer Flash para comparar")
+    runner.run([exe("iceprog"), *selected_args, "-R", str(bitstream.stat().st_size), str(verify)], description="Leer Flash para comparar")
     if verify.read_bytes() != bitstream.read_bytes():
         raise IdeError("La comparación posterior de la Flash falló.")
     runner.write("PROGRAMACIÓN Y COMPARACIÓN APROBADAS.")
