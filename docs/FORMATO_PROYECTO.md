@@ -14,11 +14,13 @@
 
 ```json
 "results_dir": "src",
-"show_synthesis_report": true
+"show_synthesis_report": true,
+"ask_program_after_synthesis": true
 ```
 
 - `results_dir` es opcional. Copia allí el informe y el bitstream con fecha y hora, sin sobrescribir ejecuciones anteriores.
 - `show_synthesis_report` abre en Windows una ventana con el informe antes de programar la FPGA.
+- `ask_program_after_synthesis` agrega a esa ventana las opciones `Programar FPGA` y `No programar`. La placa no se necesita para sintetizar, rutear ni generar el bitstream.
 - El asistente interactivo configura automáticamente `results_dir` con la carpeta del archivo que contiene el top level.
 
 ## Dispositivo

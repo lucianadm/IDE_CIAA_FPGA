@@ -7,6 +7,7 @@
   "pcf": "pins/edu_ciaa.pcf",
   "results_dir": "src",
   "show_synthesis_report": false,
+  "ask_program_after_synthesis": false,
   "device": {
     "nextpnr_device": "hx8k",
     "package": "tq144:4k",

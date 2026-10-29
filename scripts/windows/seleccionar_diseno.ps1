@@ -84,123 +84,6 @@ function Select-Language {
  return [string]$form.Tag
 }
 
-function Test-Programmer {
- $iceprog=Get-Command iceprog -ErrorAction SilentlyContinue
- if(!$iceprog){throw 'No se encontro iceprog aunque el entorno de herramientas fue preparado.'}
- $selectors=@(
-  @('-d','i:0x0403:0x6010','-I','A','-t'),
-  @('-I','A','-t'),
-  @('-d','i:0x0403:0x6010:0','-I','A','-t')
- )
- foreach($arguments in $selectors){
-  $startInfo=New-Object System.Diagnostics.ProcessStartInfo
-  $startInfo.FileName=$iceprog.Source
-  $startInfo.Arguments=$arguments -join ' '
-  $startInfo.UseShellExecute=$false
-  $startInfo.CreateNoWindow=$true
-  $startInfo.RedirectStandardOutput=$true
-  $startInfo.RedirectStandardError=$true
-  $process=New-Object System.Diagnostics.Process
-  $process.StartInfo=$startInfo
-  if(!$process.Start()){continue}
-  $stdout=$process.StandardOutput.ReadToEndAsync()
-  $stderr=$process.StandardError.ReadToEndAsync()
-  $process.WaitForExit()
-  [void]$stdout.Result
-  [void]$stderr.Result
-  if($process.ExitCode -eq 0){return $true}
- }
- return $false
-}
-
-function Show-UsbDialog {
- $form=New-Object System.Windows.Forms.Form
- $form.Text='Preparar conexion USB de la FPGA'
- $form.StartPosition='CenterScreen'
- $form.FormBorderStyle=[System.Windows.Forms.FormBorderStyle]::FixedDialog
- $form.ClientSize=New-Object System.Drawing.Size(600,245)
- $form.MaximizeBox=$false
- $form.MinimizeBox=$false
- $form.ShowInTaskbar=$false
- $form.TopMost=$true
-
- $label=New-Object System.Windows.Forms.Label
- $label.Text="No se puede acceder al programador FT2232H.`r`n`r`nCon la placa conectada, abra Zadig y seleccione solamente:`r`nDual RS232-HS (Interface 0) - USB ID 0403:6010 - interfaz 00`r`nCambie esa interfaz a WinUSB. No modifique Interface 1.`r`nLuego desconecte y vuelva a conectar la placa."
- $label.AutoSize=$false
- $label.Size=New-Object System.Drawing.Size(555,145)
- $label.Location=New-Object System.Drawing.Point(22,20)
- $form.Controls.Add($label)
-
- $zadig=New-Object System.Windows.Forms.Button
- $zadig.Text='Abrir Zadig'
- $zadig.Size=New-Object System.Drawing.Size(150,38)
- $zadig.Location=New-Object System.Drawing.Point(42,184)
- $zadig.Add_Click({$form.Tag='zadig';$form.DialogResult=[System.Windows.Forms.DialogResult]::OK;$form.Close()})
- $form.Controls.Add($zadig)
-
- $retry=New-Object System.Windows.Forms.Button
- $retry.Text='Reintentar'
- $retry.Size=New-Object System.Drawing.Size(150,38)
- $retry.Location=New-Object System.Drawing.Point(225,184)
- $retry.Add_Click({$form.Tag='retry';$form.DialogResult=[System.Windows.Forms.DialogResult]::OK;$form.Close()})
- $form.Controls.Add($retry)
-
- $cancel=New-Object System.Windows.Forms.Button
- $cancel.Text='Cancelar'
- $cancel.Size=New-Object System.Drawing.Size(150,38)
- $cancel.Location=New-Object System.Drawing.Point(408,184)
- $cancel.Add_Click({$form.Tag='cancel';$form.DialogResult=[System.Windows.Forms.DialogResult]::Cancel;$form.Close()})
- $form.Controls.Add($cancel)
- $form.CancelButton=$cancel
-
- [void]$form.ShowDialog()
- return [string]$form.Tag
-}
-
-function Open-FtdiDriverTool {
- $apio=Get-Command apio -ErrorAction SilentlyContinue
- if($apio){
-  Write-Host "`nSe abrira el preparador FTDI de Apio. Siga las indicaciones de Zadig." -ForegroundColor Yellow
-  & $apio.Source drivers install ftdi
-  if($LASTEXITCODE -ne 0){throw "El preparador FTDI de Apio fallo (codigo $LASTEXITCODE)."}
-  return
- }
-
- $apioHome=Join-Path $env:USERPROFILE '.apio'
- $zadig=@(Get-ChildItem -LiteralPath $apioHome -Recurse -File -Filter 'zadig*.exe' -ErrorAction SilentlyContinue |
-  Sort-Object LastWriteTime -Descending | Select-Object -First 1)
- if(!$zadig.Count){
-  throw 'No se encontro Zadig. Instale Apio o ejecute nuevamente el instalador de preparacion de la EDU-CIAA-FPGA.'
- }
- try {
-  Start-Process -FilePath $zadig[0].FullName -Verb RunAs -Wait
- } catch {
-  throw 'No se pudo abrir Zadig con permisos de administrador.'
- }
-}
-
-function Confirm-ProgrammerReady {
- while(!(Test-Programmer)){
-  $answer=Show-UsbDialog
-  if($answer -eq 'cancel' -or !$answer){throw 'Programacion cancelada porque el controlador USB no esta preparado.'}
-  if($answer -eq 'zadig'){
-   Open-FtdiDriverTool
-   [void][System.Windows.Forms.MessageBox]::Show(
-    "Desconecte y vuelva a conectar la EDU-CIAA-FPGA.`r`n`r`nPulse Aceptar solamente cuando la placa este nuevamente conectada.",
-    'Reconectar la placa',
-    [System.Windows.Forms.MessageBoxButtons]::OK,
-    [System.Windows.Forms.MessageBoxIcon]::Information
-   )
-  }
- }
- [void][System.Windows.Forms.MessageBox]::Show(
-  'La memoria Flash fue identificada correctamente. Puede continuar con la sintesis.',
-  'Programador USB listo',
-  [System.Windows.Forms.MessageBoxButtons]::OK,
-  [System.Windows.Forms.MessageBoxIcon]::Information
- )
-}
-
 [void][System.Windows.Forms.MessageBox]::Show(
  "Este asistente permite compilar un diseno VHDL o Verilog para la EDU-CIAA-FPGA.`n`nPrimero seleccione el lenguaje y despues TODOS los archivos fuente del diseno.",
  'IDE CIAA FPGA',
@@ -289,9 +172,6 @@ if($doSimulation){
  Write-Host 'Simulacion funcional finalizada. A continuacion comienza la preparacion de la sintesis.' -ForegroundColor Green
 }
 
-$doProgram=Ask-YesNo 'Quiere programar la FPGA despues de sintetizar?' 'Programar FPGA'
-if($doProgram){Confirm-ProgrammerReady}
-
 $dialog.Multiselect=$false
 $dialog.FileName=''
 $dialog.InitialDirectory=Split-Path $designFiles[0]
@@ -311,6 +191,7 @@ $project=[ordered]@{
  pcf=$pcf
  results_dir=$resultsDirectory
  show_synthesis_report=$true
+ ask_program_after_synthesis=$true
  device=[ordered]@{nextpnr_device='hx8k';package='tq144:4k';frequency_mhz=12}
  programmer=[ordered]@{vid='0403';pid='6010';index=0;interface='A'}
  simulation=[ordered]@{
@@ -326,5 +207,5 @@ $project | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $projectFile -Enco
 
 [pscustomobject]@{
  ProjectFile=$projectFile
- Program=$doProgram
+ Program=$false
 }

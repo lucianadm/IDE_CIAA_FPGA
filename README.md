@@ -30,14 +30,14 @@ El destino configurado es la EDU-CIAA-FPGA con **Lattice iCE40HX4K-TQ144** y rel
 4. Seleccionar juntos todos los archivos sintetizables del diseño e indicar inmediatamente el top level.
 5. Responder si se quiere ejecutar la simulación funcional RTL. El testbench se solicita solamente cuando la respuesta es afirmativa.
 6. Revisar el diagrama temporal, que se abre automáticamente si la simulación termina correctamente.
-7. Decidir si se quiere programar la FPGA. Si la respuesta es afirmativa, el asistente comprueba inmediatamente la conexión USB y permite abrir Zadig cuando `Interface 0` no tiene WinUSB.
-8. Recién después seleccionar el archivo PCF para sintetizar.
+7. Seleccionar el archivo PCF, sintetizar, rutear y generar el bitstream. Para llegar hasta este punto no es necesario conectar la placa.
+8. Revisar el informe de síntesis y elegir `Programar FPGA` o `No programar`. Solo la primera opción intenta acceder al dispositivo.
 
 El selector admite varios archivos tanto para el diseño como para el testbench. La primera simulación es funcional RTL y no necesita el PCF. Después de una simulación correcta abre automáticamente el diagrama temporal. En VHDL también pregunta la duración máxima. En Verilog agrega un envoltorio de simulación que genera el archivo VCD aunque el testbench no incluya `$dumpfile` y `$dumpvars`. Se conservan los comandos de consola para automatizar el flujo mediante un `project.json`.
 
 El diagrama temporal de la simulación RTL no contiene los retardos físicos del FPGA. Durante el ruteo, nextpnr realiza análisis temporal estático y comprueba si el diseño cumple la frecuencia indicada en `frequency_mhz`. Este flujo no genera una simulación post-ruteo con retardos anotados.
 
-Al finalizar la síntesis se muestra un resumen con celdas lógicas, bloques de RAM, entradas/salidas, buffers globales, PLL, tamaño del bitstream y frecuencia máxima de cada reloj. En el asistente de Windows, antes de programar aparece una ventana con el informe completo. El informe y el `.bin` se copian con fecha y hora junto al archivo que contiene el top level; también permanecen en la carpeta interna `build`.
+Al finalizar la síntesis se muestra un resumen con celdas lógicas, bloques de RAM, entradas/salidas, buffers globales, PLL, tamaño del bitstream y frecuencia máxima de cada reloj. En el asistente de Windows aparece una ventana con el informe completo y los botones `Programar FPGA` y `No programar`. El informe y el `.bin` se copian con fecha y hora junto al archivo que contiene el top level; también permanecen en la carpeta interna `build`.
 
 Si la copia incluye `downloads`, la primera ejecución extrae OSS CAD Suite y GHDL localmente sin acceder a Internet. Si esos paquetes fueron eliminados, puede descargar aproximadamente 600 MB para OSS CAD Suite y 24 MB para GHDL. Si encuentra una instalación válida de Apio, también puede reutilizarla.
 

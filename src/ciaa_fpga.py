@@ -354,9 +354,9 @@ def publish_synthesis_results(runner: Runner, config: dict, base: Path, output: 
     return published_report, published_bitstream
 
 
-def show_synthesis_report(report: Path, bitstream: Path, will_program: bool) -> None:
+def show_synthesis_report(report: Path, bitstream: Path, will_program: bool, ask_program: bool = False) -> bool | None:
     if platform.system() != "Windows":
-        return
+        return None
     powershell = shutil.which("powershell.exe") or shutil.which("powershell")
     script = ROOT / "scripts" / "windows" / "mostrar_informe_sintesis.ps1"
     if not powershell or not script.is_file():
@@ -367,9 +367,14 @@ def show_synthesis_report(report: Path, bitstream: Path, will_program: bool) -> 
     ]
     if will_program:
         command.append("-WillProgram")
+    if ask_program:
+        command.append("-AskProgram")
     result = subprocess.run(command, check=False)
+    if ask_program and result.returncode in (0, 10):
+        return result.returncode == 10
     if result.returncode != 0:
         raise IdeError(f"La ventana del informe de síntesis falló (código {result.returncode}).")
+    return None
 
 
 def create_output(name: str) -> Path:
@@ -404,9 +409,15 @@ def build_project(project: str, simulate: bool | None, view: bool | None, progra
             runner.write("SIMULACIÓN OMITIDA.")
         bitstream = synthesize(runner, config, base, output)
         published_report, published_bitstream = publish_synthesis_results(runner, config, base, output, bitstream)
+        program_after_report = program
+        ask_program = bool(config.get("ask_program_after_synthesis", False)) and not program
         if config.get("show_synthesis_report", False):
-            show_synthesis_report(published_report, published_bitstream, program)
-        if program:
+            decision = show_synthesis_report(published_report, published_bitstream, program, ask_program)
+            if decision is not None:
+                program_after_report = decision
+        elif ask_program:
+            raise IdeError("ask_program_after_synthesis requiere show_synthesis_report en Windows.")
+        if program_after_report:
             program_flash(runner, bitstream, config.get("programmer"))
         else:
             runner.write("No se programó la placa.")
