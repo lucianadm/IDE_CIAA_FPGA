@@ -70,8 +70,9 @@ if ! suite_ok "$SUITE"; then
 fi
 
 if [[ -n "$SUITE" ]]; then
-  export PATH="$SUITE/bin:$PATH"
-  export LD_LIBRARY_PATH="$SUITE/lib:${LD_LIBRARY_PATH:-}"
+  export PATH="$SUITE/bin:$SUITE/py3bin:$PATH"
+  export VIRTUAL_ENV="$SUITE"
+  export VERILATOR_ROOT="$SUITE/share/verilator"
   export CIAA_TOOLCHAIN="$SUITE"
 fi
 
@@ -79,7 +80,7 @@ GHDL_DIR="$TOOLS/ghdl-6.0.0"
 if ((OFFLINE_BUNDLE == 1)); then
   [[ -x "$GHDL_DIR/bin/ghdl" ]] || { echo 'ERROR: el paquete offline esta incompleto: falta tools/ghdl-6.0.0/bin/ghdl.' >&2; exit 1; }
   export PATH="$GHDL_DIR/bin:$PATH"
-  export LD_LIBRARY_PATH="$GHDL_DIR/lib:${LD_LIBRARY_PATH:-}"
+  export GHDL_PREFIX="$GHDL_DIR/lib/ghdl"
 elif ! command -v ghdl >/dev/null 2>&1; then
   if [[ ! -x "$GHDL_DIR/bin/ghdl" ]]; then
     NAME='ghdl-mcode-6.0.0-ubuntu24.04-x86_64.tar.gz'
@@ -95,7 +96,7 @@ elif ! command -v ghdl >/dev/null 2>&1; then
     mv "$FOUND" "$GHDL_DIR"
   fi
   export PATH="$GHDL_DIR/bin:$PATH"
-  export LD_LIBRARY_PATH="$GHDL_DIR/lib:${LD_LIBRARY_PATH:-}"
+  export GHDL_PREFIX="$GHDL_DIR/lib/ghdl"
 fi
 
 if ((OFFLINE_BUNDLE == 1)); then
