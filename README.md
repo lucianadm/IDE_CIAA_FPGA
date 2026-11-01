@@ -2,6 +2,14 @@
 
 Entorno reproducible para trabajar con la **EDU-CIAA-FPGA** desde Windows o Linux. Permite:
 
+## Descargar el programa
+
+### [Descargar IDE CIAA FPGA 1.0.0 para Windows x64](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.0.0/IDE_CIAA_FPGA_1.0.0_Windows_x64.zip)
+
+Para instalar y usar el programa, descargá el paquete anterior o ingresá a la sección [Releases](https://github.com/lucianadm/IDE_CIAA_FPGA/releases). **No uses `Code > Download ZIP` para instalarlo:** esa opción de GitHub contiene solamente el código fuente y no incluye los compiladores ni las herramientas de programación.
+
+Este entorno se basa en la placa, la documentación y los recursos abiertos del proyecto [EDU-CIAA-FPGA de Proyecto CIAA](https://www.proyecto-ciaa.com.ar/devwiki/doku.php%3Fid=desarrollo:edu-fpga.html). La placa fue desarrollada por el Grupo de Investigación y Desarrollo de Sistemas Embebidos (ASE) de la Universidad Tecnológica Nacional, Facultad Regional Haedo.
+
 - simular diseños Verilog/SystemVerilog con Icarus Verilog;
 - simular VHDL 2008 con GHDL;
 - abrir diagramas temporales con Surfer o GTKWave;
@@ -11,10 +19,10 @@ Entorno reproducible para trabajar con la **EDU-CIAA-FPGA** desde Windows o Linu
 - mostrar y guardar un informe de utilización y frecuencia máxima;
 - identificar, respaldar, programar y comparar la Flash con `iceprog`.
 
-El código fuente y las distribuciones ejecutables están separados:
+El código fuente y las distribuciones listas para usar están separados:
 
 - [Releases](https://github.com/lucianadm/IDE_CIAA_FPGA/releases): paquetes autocontenidos para usar sin Internet, con herramientas y licencias completas.
-- **Code > Download ZIP**: solamente código fuente para desarrollo; no contiene compiladores ni programadores.
+- **Code > Download ZIP**: código fuente para desarrollo; no sirve como instalador y no contiene compiladores ni programadores.
 
 Los paquetes de Releases usan exclusivamente las herramientas incluidas en `tools`. No descargan componentes, no necesitan Git LFS y no requieren permisos de administrador para simular, sintetizar o generar un bitstream.
 
