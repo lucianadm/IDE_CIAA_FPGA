@@ -11,14 +11,17 @@ Entorno reproducible para trabajar con la **EDU-CIAA-FPGA** desde Windows o Linu
 - mostrar y guardar un informe de utilización y frecuencia máxima;
 - identificar, respaldar, programar y comparar la Flash con `iceprog`.
 
-El repositorio completo incluye en `downloads` los paquetes oficiales necesarios para Windows y Linux. Después de clonarlo con Git LFS, puede instalar y ejecutar las herramientas sin conexión. El iniciador comprueba lo disponible, reutiliza los paquetes locales y solo intenta descargar algo si el archivo correspondiente falta o no supera la verificación SHA-256.
+El código fuente y las distribuciones ejecutables están separados:
 
-> Para una copia realmente autocontenida no use el botón **Download ZIP** de GitHub. Clone el repositorio con Git LFS o descargue una publicación que incluya los binarios completos. Los archivos señalados por Git LFS deben descargarse mientras todavía haya conexión.
+- [Releases](https://github.com/lucianadm/IDE_CIAA_FPGA/releases): paquetes autocontenidos para usar sin Internet, con herramientas y licencias completas.
+- **Code > Download ZIP**: solamente código fuente para desarrollo; no contiene compiladores ni programadores.
+
+Los paquetes de Releases usan exclusivamente las herramientas incluidas en `tools`. No descargan componentes, no necesitan Git LFS y no requieren permisos de administrador para simular, sintetizar o generar un bitstream.
 
 ## Sistemas admitidos
 
 - Windows 10 u 11 x64, procesador Intel o AMD.
-- Linux x64, procesador Intel o AMD.
+- Linux x64, procesador Intel o AMD. La distribución se prueba en Ubuntu 24.04; otras distribuciones necesitan una versión de glibc compatible.
 
 El destino configurado es la EDU-CIAA-FPGA con **Lattice iCE40HX4K-TQ144** y reloj de 12 MHz. nextpnr representa esta variante mediante `--hx8k --package tq144:4k`.
 
@@ -41,14 +44,15 @@ La base abierta utilizada por nextpnr identifica este encapsulado mediante `hx8k
 
 ## Inicio rápido en Windows
 
-1. Descargar o clonar esta carpeta en una ruta sin caracteres extraños. No requiere una ubicación fija.
-2. Ejecutar `IDE_CIAA_FPGA.bat`.
-3. Leer el cartel inicial y elegir VHDL o Verilog/SystemVerilog.
-4. Seleccionar juntos todos los archivos sintetizables del diseño e indicar inmediatamente el top level.
-5. Responder si se quiere ejecutar la simulación funcional RTL. El testbench se solicita solamente cuando la respuesta es afirmativa.
-6. Revisar el diagrama temporal, que se abre automáticamente si la simulación termina correctamente.
-7. Seleccionar el archivo PCF, sintetizar, rutear y generar el bitstream. Para llegar hasta este punto no es necesario conectar la placa.
-8. Revisar el informe de síntesis y elegir `Programar FPGA` o `No programar`. Solo la primera opción intenta acceder al dispositivo.
+1. Descargar `IDE_CIAA_FPGA_<version>_Windows_x64.zip` desde Releases y comprobar su SHA-256 con `SHA256SUMS.txt`.
+2. Extraer todo el ZIP. No requiere una ubicación fija.
+3. Ejecutar `IDE_CIAA_FPGA.bat`.
+4. Leer el cartel inicial y elegir VHDL o Verilog/SystemVerilog.
+5. Seleccionar juntos todos los archivos sintetizables del diseño e indicar inmediatamente el top level.
+6. Responder si se quiere ejecutar la simulación funcional RTL. El testbench se solicita solamente cuando la respuesta es afirmativa.
+7. Revisar el diagrama temporal, que se abre automáticamente si la simulación termina correctamente.
+8. Seleccionar el archivo PCF, sintetizar, rutear y generar el bitstream. Para llegar hasta este punto no es necesario conectar la placa.
+9. Revisar el informe de síntesis y elegir `Programar FPGA` o `No programar`. Solo la primera opción intenta acceder al dispositivo.
 
 El selector admite varios archivos tanto para el diseño como para el testbench. La primera simulación es funcional RTL y no necesita el PCF. Después de una simulación correcta abre automáticamente el diagrama temporal. En VHDL también pregunta la duración máxima. En Verilog agrega un envoltorio de simulación que genera el archivo VCD aunque el testbench no incluya `$dumpfile` y `$dumpvars`. Se conservan los comandos de consola para automatizar el flujo mediante un `project.json`.
 
@@ -56,13 +60,13 @@ El diagrama temporal de la simulación RTL no contiene los retardos físicos del
 
 Al finalizar la síntesis se muestra un resumen con celdas lógicas, bloques de RAM, entradas/salidas, buffers globales, PLL, tamaño del bitstream y frecuencia máxima de cada reloj. En el asistente de Windows aparece una ventana con el informe completo y los botones `Programar FPGA` y `No programar`. El informe y el `.bin` se copian con fecha y hora junto al archivo que contiene el top level; también permanecen en la carpeta interna `build`.
 
-Si la copia incluye `downloads`, la primera ejecución extrae OSS CAD Suite y GHDL localmente sin acceder a Internet. Si esos paquetes fueron eliminados, puede descargar aproximadamente 600 MB para OSS CAD Suite y 24 MB para GHDL. Si encuentra una instalación válida de Apio, también puede reutilizarla.
+La distribución detecta el archivo `OFFLINE_BUNDLE` y se detiene con un error claro si faltan herramientas. En ese modo nunca descarga paquetes ni reutiliza una instalación externa de Apio.
 
 Para usar la placa, **FT2232H Interface A / MI_00** debe tener WinUSB. **Interface B / MI_01** debe conservar el controlador FTDI si se utilizará como puerto UART. El entorno nunca cambia controladores automáticamente.
 
 ## Inicio rápido en Linux
 
-Dar permiso de ejecución una sola vez:
+Descargar `IDE_CIAA_FPGA_<version>_Linux_x64.tar.gz`, comprobar su SHA-256 y extraerlo. Dar permiso de ejecución una sola vez si el sistema de archivos no conservó los permisos:
 
 ```bash
 chmod +x IDE_CIAA_FPGA.sh scripts/linux/*.sh
@@ -140,6 +144,7 @@ IDE_CIAA_FPGA/
 ├── src/ciaa_fpga.py              flujo común
 ├── scripts/windows/              instalación Windows
 ├── scripts/linux/                instalación y permisos Linux
+├── scripts/release/              constructor reproducible de paquetes
 ├── examples/leds_vhdl/           ejemplo VHDL con testbench
 ├── examples/leds_verilog/         ejemplo Verilog con testbench
 ├── examples/botones_leds_vhdl/   secuencias seleccionadas con pulsadores
@@ -162,11 +167,15 @@ Los proyectos `botones_leds_vhdl` y `botones_leds_verilog` implementan el mismo 
 
 Si se mantienen varios botones presionados, la prioridad es `BTN4`, `BTN3`, `BTN2` y `BTN1`. Cada proyecto contiene el fuente, el PCF y un testbench que comprueba los cinco modos.
 
-`downloads` contiene los instaladores verificados para poder preparar otra computadora sin conexión. `tools` y `build` se conservan también en la distribución completa. `backups` permanece excluida porque puede contener el diseño previo leído de una placa particular.
+El repositorio no versiona `downloads`, `tools`, `build` ni `backups`. Las herramientas se incorporan durante la construcción de cada Release y los resultados se generan localmente.
 
 ## Herramientas de terceros
 
-Los instaladores descargan OSS CAD Suite de YosysHQ y GHDL desde sus repositorios oficiales. Esos proyectos conservan sus propias licencias. La licencia MIT de este repositorio cubre únicamente los scripts y ejemplos incluidos aquí.
+Las distribuciones incluyen OSS CAD Suite 2026-10-28 y GHDL 6.0.0 obtenidos desde sus publicaciones oficiales y verificados mediante SHA-256. Consulte [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). La licencia MIT de este repositorio cubre únicamente los scripts y ejemplos propios.
+
+## Seguridad de las descargas
+
+No desactive Microsoft Defender ni agregue exclusiones. Verifique el SHA-256 publicado antes de ejecutar un archivo. El análisis de la alerta histórica `Trojan:Script/Wacatac.B!ml`, los resultados reproducibles y la forma de informar una detección están en [SECURITY.md](SECURITY.md).
 
 ## Limitaciones
 

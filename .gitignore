@@ -1,3 +1,8 @@
 /backups/
+/build/
+/dist/
+/downloads/
+/tools/
 __pycache__/
 *.pyc
+.pytest_cache/

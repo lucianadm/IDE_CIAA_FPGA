@@ -3,7 +3,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TOOLS="$ROOT/tools"
 DOWNLOADS="$ROOT/downloads"
-mkdir -p "$TOOLS" "$DOWNLOADS"
+OFFLINE_BUNDLE=0
+[[ -f "$ROOT/OFFLINE_BUNDLE" ]] && OFFLINE_BUNDLE=1
+mkdir -p "$TOOLS"
+((OFFLINE_BUNDLE == 1)) || mkdir -p "$DOWNLOADS"
 
 ARCH="$(uname -m)"
 if [[ "$ARCH" != "x86_64" && "$ARCH" != "amd64" ]]; then
@@ -25,7 +28,7 @@ install_base_tools() {
   else echo 'ERROR: instale curl, tar y python3 con el gestor de paquetes de su distribucion.' >&2; exit 1
   fi
 }
-install_base_tools
+((OFFLINE_BUNDLE == 1)) || install_base_tools
 
 suite_ok() {
   local d="$1"
@@ -43,6 +46,10 @@ download_checked() {
 
 SUITE="$TOOLS/oss-cad-suite"
 if ! suite_ok "$SUITE"; then
+  if ((OFFLINE_BUNDLE == 1)); then
+    echo 'ERROR: el paquete offline esta incompleto: falta tools/oss-cad-suite o sus ejecutables.' >&2
+    exit 1
+  fi
   if command -v yosys >/dev/null 2>&1 && command -v nextpnr-ice40 >/dev/null 2>&1 && command -v icepack >/dev/null 2>&1 && command -v iceprog >/dev/null 2>&1 && command -v iverilog >/dev/null 2>&1 && command -v vvp >/dev/null 2>&1; then
     SUITE=""
     echo 'Se reutilizaran las herramientas instaladas en el sistema.'
@@ -68,8 +75,12 @@ if [[ -n "$SUITE" ]]; then
   export CIAA_TOOLCHAIN="$SUITE"
 fi
 
-if ! command -v ghdl >/dev/null 2>&1; then
-  GHDL_DIR="$TOOLS/ghdl-6.0.0"
+GHDL_DIR="$TOOLS/ghdl-6.0.0"
+if ((OFFLINE_BUNDLE == 1)); then
+  [[ -x "$GHDL_DIR/bin/ghdl" ]] || { echo 'ERROR: el paquete offline esta incompleto: falta tools/ghdl-6.0.0/bin/ghdl.' >&2; exit 1; }
+  export PATH="$GHDL_DIR/bin:$PATH"
+  export LD_LIBRARY_PATH="$GHDL_DIR/lib:${LD_LIBRARY_PATH:-}"
+elif ! command -v ghdl >/dev/null 2>&1; then
   if [[ ! -x "$GHDL_DIR/bin/ghdl" ]]; then
     NAME='ghdl-mcode-6.0.0-ubuntu24.04-x86_64.tar.gz'
     ARCHIVE="$DOWNLOADS/$NAME"
@@ -87,5 +98,18 @@ if ! command -v ghdl >/dev/null 2>&1; then
   export LD_LIBRARY_PATH="$GHDL_DIR/lib:${LD_LIBRARY_PATH:-}"
 fi
 
+if ((OFFLINE_BUNDLE == 1)); then
+  PYTHON="$SUITE/py3bin/python3"
+  [[ -x "$PYTHON" ]] || { echo 'ERROR: el paquete offline no contiene Python 3.' >&2; exit 1; }
+else
+  PYTHON=python3
+  if ! command -v "$PYTHON" >/dev/null 2>&1; then
+    if [[ -x "$SUITE/py3bin/python3" ]]; then PYTHON="$SUITE/py3bin/python3"
+    else echo 'ERROR: no se encontro Python 3 ni la copia incluida en OSS CAD Suite.' >&2; exit 1
+    fi
+  fi
+fi
+
+((OFFLINE_BUNDLE == 1)) && echo 'Modo offline: se usan exclusivamente las herramientas incluidas.'
 echo "Herramientas listas${SUITE:+: $SUITE}"
-exec python3 "$ROOT/src/ciaa_fpga.py" "$@"
+exec "$PYTHON" "$ROOT/src/ciaa_fpga.py" "$@"

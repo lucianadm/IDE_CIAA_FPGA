@@ -3,7 +3,9 @@ $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $tools=Join-Path $root 'tools'
 $downloads=Join-Path $root 'downloads'
-New-Item -ItemType Directory -Path $tools,$downloads -Force | Out-Null
+$offlineBundle=Test-Path -LiteralPath (Join-Path $root 'OFFLINE_BUNDLE') -PathType Leaf
+New-Item -ItemType Directory -Path $tools -Force | Out-Null
+if(!$offlineBundle){New-Item -ItemType Directory -Path $downloads -Force | Out-Null}
 
 if(-not [Environment]::Is64BitOperatingSystem -or $env:PROCESSOR_ARCHITECTURE -eq 'ARM64'){
  throw 'Esta version admite Windows x64 sobre procesadores Intel/AMD.'
@@ -52,6 +54,7 @@ function Test-Ghdl([string]$Path){
 }
 
 if(!(Test-Suite $suiteLocal)){
+ if($offlineBundle){throw 'El paquete offline esta incompleto: falta tools\oss-cad-suite o sus ejecutables.'}
  $apioSuite=Join-Path $env:USERPROFILE '.apio\packages\oss-cad-suite'
  if(Test-Suite $apioSuite){
   $suite=$apioSuite
@@ -76,6 +79,7 @@ $ghdlVersion='6.0.0'
 $ghdlDir=Join-Path $tools "ghdl-$ghdlVersion"
 $ghdlExe=Join-Path $ghdlDir 'bin\ghdl.exe'
 if(!(Test-Ghdl $ghdlExe)){
+ if($offlineBundle){throw 'El paquete offline esta incompleto: falta tools\ghdl-6.0.0\bin\ghdl.exe.'}
  if(Test-Path -LiteralPath $ghdlDir){
   Write-Host 'La copia local de GHDL no es un ejecutable valido. Se reparara automaticamente.' -ForegroundColor Yellow
   Move-Item -LiteralPath $ghdlDir -Destination ($ghdlDir+'.invalido_'+(Get-Date -Format yyyyMMdd_HHmmssfff))
@@ -89,32 +93,53 @@ if(!(Test-Ghdl $ghdlExe)){
  Move-Item -LiteralPath $stage -Destination $ghdlDir
 }
 
+$temporaryDrive=$null
+if($suite -match '\s'){
+ foreach($letter in @('Z','Y','X','W','V','U','T','S','R')){
+  if(!(Test-Path "$letter`:")){
+   & "$env:SystemRoot\System32\subst.exe" "$letter`:" $suite
+   if($LASTEXITCODE -eq 0){$temporaryDrive="$letter`:";$suite="$temporaryDrive\";break}
+  }
+ }
+ if(!$temporaryDrive){throw 'La ruta contiene espacios e Icarus Verilog necesita una letra de unidad temporal, pero no hay ninguna disponible entre R: y Z:.'}
+ Write-Host "Compatibilidad con rutas con espacios: $temporaryDrive apunta temporalmente a OSS CAD Suite." -ForegroundColor DarkGray
+}
+
 $env:PATH=(Join-Path $suite 'bin')+';'+(Join-Path $suite 'lib')+';'+(Join-Path $ghdlDir 'bin')+';'+$env:PATH
 $env:CIAA_TOOLCHAIN=$suite
 $env:PYTHONUTF8='1'
 $python=$null
-foreach($name in @('py.exe','python.exe','python3.exe')){
- $cmd=Get-Command $name -ErrorAction SilentlyContinue
- if($cmd){
-  try {& $cmd.Source --version *> $null; if($LASTEXITCODE -eq 0){$python=$cmd.Source;break}} catch {}
+$bundledPython=@(Get-ChildItem -LiteralPath $suite -Recurse -File -Filter 'python3.exe' -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName)
+if($offlineBundle -and $bundledPython.Count){$python=$bundledPython[0]}
+if(!$python){
+ foreach($name in @('py.exe','python.exe','python3.exe')){
+  $cmd=Get-Command $name -ErrorAction SilentlyContinue
+  if($cmd){
+   try {& $cmd.Source --version *> $null; if($LASTEXITCODE -eq 0){$python=$cmd.Source;break}} catch {}
+  }
  }
 }
 if(!$python){
- $python=@(Get-ChildItem -LiteralPath $suite -Recurse -File -Filter 'python3.exe' -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName)
- if($python.Count){$python=$python[0]}
+ if($bundledPython.Count){$python=$bundledPython[0]}
 }
 if(!$python){throw 'No se encontro Python y la suite descargada tampoco lo contiene.'}
 
+if($offlineBundle){Write-Host 'Modo offline: se usan exclusivamente las herramientas incluidas.' -ForegroundColor Green}
 Write-Host "Herramientas listas: $suite" -ForegroundColor Green
-if(!$IdeArguments.Count){
- $selection=& (Join-Path $PSScriptRoot 'seleccionar_diseno.ps1') -Root $root -Python $python
- if(!$selection -or !$selection.ProjectFile){throw 'No se pudo preparar el proyecto seleccionado.'}
- $arguments=@('build',$selection.ProjectFile)
- $arguments+='--no-simulate'
- $arguments+='--no-view'
- if($selection.Program){$arguments+='--program'}
- & $python (Join-Path $root 'src\ciaa_fpga.py') @arguments
-} else {
- & $python (Join-Path $root 'src\ciaa_fpga.py') @IdeArguments
+try {
+ if(!$IdeArguments.Count){
+  $selection=& (Join-Path $PSScriptRoot 'seleccionar_diseno.ps1') -Root $root -Python $python
+  if(!$selection -or !$selection.ProjectFile){throw 'No se pudo preparar el proyecto seleccionado.'}
+  $arguments=@('build',$selection.ProjectFile)
+  $arguments+='--no-simulate'
+  $arguments+='--no-view'
+  if($selection.Program){$arguments+='--program'}
+  & $python (Join-Path $root 'src\ciaa_fpga.py') @arguments
+ } else {
+  & $python (Join-Path $root 'src\ciaa_fpga.py') @IdeArguments
+ }
+ $resultCode=$LASTEXITCODE
+} finally {
+ if($temporaryDrive){& "$env:SystemRoot\System32\subst.exe" $temporaryDrive /d | Out-Null}
 }
-exit $LASTEXITCODE
+exit $resultCode
