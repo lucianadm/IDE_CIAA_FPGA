@@ -171,10 +171,10 @@ def simulate_vhdl(runner: Runner, config: dict, base: Path, output: Path) -> Pat
     all_sources = [str(path) for path in sources + test_sources]
     runner.run([exe("ghdl"), "-i", "--std=08", f"--workdir={work}", *all_sources], description="Importar VHDL")
     runner.run([exe("ghdl"), "-m", "--std=08", f"--workdir={work}", tb_top], description="Elaborar testbench VHDL")
-    wave = output / f"{tb_top}.ghw"
+    wave = output / f"{tb_top}.vcd"
     runner.run([
         exe("ghdl"), "-r", "--std=08", f"--workdir={work}", tb_top,
-        "--assert-level=error", f"--stop-time={stop_time}", f"--wave={wave}",
+        "--assert-level=error", f"--stop-time={stop_time}", f"--vcd={wave}",
     ], description="Simular VHDL")
     return wave
 
@@ -204,6 +204,50 @@ def simulate_verilog(runner: Runner, config: dict, base: Path, output: Path) -> 
     return wave
 
 
+def vcd_signals(wave: Path) -> list[tuple[str, int]]:
+    scopes: list[str] = []
+    signals: list[tuple[str, int]] = []
+    with wave.open("r", encoding="utf-8", errors="replace") as stream:
+        for raw_line in stream:
+            line = raw_line.strip()
+            if line.startswith("$scope "):
+                fields = line.split()
+                if len(fields) >= 4:
+                    scopes.append(fields[2])
+            elif line.startswith("$upscope"):
+                if scopes:
+                    scopes.pop()
+            elif line.startswith("$var "):
+                fields = line.split()
+                if len(fields) < 6:
+                    continue
+                try:
+                    width = int(fields[2])
+                except ValueError:
+                    width = 1
+                reference = fields[4]
+                if len(fields) >= 7 and fields[5].startswith("["):
+                    reference += fields[5]
+                signals.append((".".join([*scopes, reference]), width))
+            elif line.startswith("$enddefinitions"):
+                break
+    return signals
+
+
+def gtkwave_save_file(wave: Path) -> Path | None:
+    if wave.suffix.lower() != ".vcd":
+        return None
+    signals = vcd_signals(wave)
+    if not signals:
+        return None
+    save_file = wave.parent / "mostrar_senales.gtkw"
+    lines = ["[*]", "[timestart] 0", "[sst_expanded] 1"]
+    for name, width in signals:
+        lines.extend(("@22" if width > 1 else "@28", name))
+    save_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return save_file
+
+
 def open_wave(runner: Runner, wave: Path, tb_top: str | None) -> None:
     surfer = exe("surfer", required=False)
     gtkwave = exe("gtkwave", required=False)
@@ -218,25 +262,12 @@ def open_wave(runner: Runner, wave: Path, tb_top: str | None) -> None:
         runner.write("Cierre Surfer para continuar.")
         runner.run([surfer, "--command-file", str(command_file), str(wave)], description="Abrir diagrama temporal")
     elif gtkwave:
-        command_file = wave.parent / "mostrar_senales_gtkwave.tcl"
-        command_file.write_text(
-            "\n".join([
-                "set senales [list]",
-                "set cantidad [gtkwave::getNumFacs]",
-                "for {set i 0} {$i < $cantidad} {incr i} {",
-                "    lappend senales [gtkwave::getFacName $i]",
-                "}",
-                "if {[llength $senales] > 0} {",
-                "    gtkwave::addSignalsFromList $senales",
-                "}",
-                "gtkwave::/Edit/Set_Trace_Max_Hier 0",
-                "gtkwave::/Time/Zoom/Zoom_Full",
-                "",
-            ]),
-            encoding="utf-8",
-        )
+        save_file = gtkwave_save_file(wave)
+        command = [gtkwave, str(wave)]
+        if save_file:
+            command.append(str(save_file))
         runner.write("Cierre GTKWave para continuar.")
-        runner.run([gtkwave, "--script", str(command_file), str(wave)], description="Abrir diagrama temporal")
+        runner.run(command, description="Abrir diagrama temporal")
     else:
         runner.write(f"No hay visor instalado. Forma de onda guardada en: {wave}")
 

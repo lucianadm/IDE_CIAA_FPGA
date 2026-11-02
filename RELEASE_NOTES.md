@@ -1,4 +1,6 @@
-# IDE CIAA FPGA 1.1.0
+# IDE CIAA FPGA 1.1.1
+
+Corrige la apertura de GTKWave en Windows. La IDE genera un archivo de visualización compatible, carga automáticamente las señales y abre la forma de onda sin depender del soporte Tcl del ejecutable.
 
 Esta versión ofrece dos distribuciones para Windows x64 y Linux x64:
 

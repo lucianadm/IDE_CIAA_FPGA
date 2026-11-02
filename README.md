@@ -8,8 +8,8 @@ Elegí la edición correspondiente al sistema operativo y a la conexión disponi
 
 | Sistema | Edición completa | Edición liviana |
 |---|---|---|
-| Windows 10/11 x64 | [Descargar 1.1.0 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.0/IDE_CIAA_FPGA_1.1.0_Windows_x64_Completa.zip) | [Descargar 1.1.0 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.0/IDE_CIAA_FPGA_1.1.0_Windows_x64_Liviana.zip) |
-| Linux x64 | [Descargar 1.1.0 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.0/IDE_CIAA_FPGA_1.1.0_Linux_x64_Completa.tar.gz) | [Descargar 1.1.0 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.0/IDE_CIAA_FPGA_1.1.0_Linux_x64_Liviana.tar.gz) |
+| Windows 10/11 x64 | [Descargar 1.1.1 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.1/IDE_CIAA_FPGA_1.1.1_Windows_x64_Completa.zip) | [Descargar 1.1.1 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.1/IDE_CIAA_FPGA_1.1.1_Windows_x64_Liviana.zip) |
+| Linux x64 | [Descargar 1.1.1 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.1/IDE_CIAA_FPGA_1.1.1_Linux_x64_Completa.tar.gz) | [Descargar 1.1.1 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.1/IDE_CIAA_FPGA_1.1.1_Linux_x64_Liviana.tar.gz) |
 
 - **Completa:** incluye toda la toolchain y puede prepararse y utilizarse sin conexión a Internet.
 - **Liviana:** ocupa mucho menos al descargarla y necesita Internet durante la primera ejecución para obtener y verificar la toolchain. Después conserva las herramientas dentro de su propia carpeta.
