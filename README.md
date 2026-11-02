@@ -4,7 +4,7 @@ Entorno reproducible para trabajar con la **EDU-CIAA-FPGA** desde Windows o Linu
 
 ## Descargar el programa
 
-### [Descargar IDE CIAA FPGA 1.0.0 para Windows x64](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.0.0/IDE_CIAA_FPGA_1.0.0_Windows_x64.zip)
+### [Descargar IDE CIAA FPGA 1.0.1 para Windows x64](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.0.1/IDE_CIAA_FPGA_1.0.1_Windows_x64.zip)
 
 Para instalar y usar el programa, descargá el paquete anterior o ingresá a la sección [Releases](https://github.com/lucianadm/IDE_CIAA_FPGA/releases). **No uses `Code > Download ZIP` para instalarlo:** esa opción de GitHub contiene solamente el código fuente y no incluye los compiladores ni las herramientas de programación.
 

@@ -218,8 +218,25 @@ def open_wave(runner: Runner, wave: Path, tb_top: str | None) -> None:
         runner.write("Cierre Surfer para continuar.")
         runner.run([surfer, "--command-file", str(command_file), str(wave)], description="Abrir diagrama temporal")
     elif gtkwave:
+        command_file = wave.parent / "mostrar_senales_gtkwave.tcl"
+        command_file.write_text(
+            "\n".join([
+                "set senales [list]",
+                "set cantidad [gtkwave::getNumFacs]",
+                "for {set i 0} {$i < $cantidad} {incr i} {",
+                "    lappend senales [gtkwave::getFacName $i]",
+                "}",
+                "if {[llength $senales] > 0} {",
+                "    gtkwave::addSignalsFromList $senales",
+                "}",
+                "gtkwave::/Edit/Set_Trace_Max_Hier 0",
+                "gtkwave::/Time/Zoom/Zoom_Full",
+                "",
+            ]),
+            encoding="utf-8",
+        )
         runner.write("Cierre GTKWave para continuar.")
-        runner.run([gtkwave, str(wave)], description="Abrir diagrama temporal")
+        runner.run([gtkwave, "--script", str(command_file), str(wave)], description="Abrir diagrama temporal")
     else:
         runner.write(f"No hay visor instalado. Forma de onda guardada en: {wave}")
 

@@ -1,6 +1,8 @@
-# IDE CIAA FPGA 1.0.0
+# IDE CIAA FPGA 1.0.1
 
-Primera distribución pública autocontenida para Windows x64 y Linux x64.
+Distribución autocontenida para Windows x64 y Linux x64.
+
+- GTKWave carga automáticamente todas las señales simuladas y ajusta la vista al intervalo completo.
 
 - Simulación VHDL 2008 y Verilog/SystemVerilog.
 - Síntesis, asignación de pines, ruteo, análisis temporal y generación de bitstream para EDU-CIAA-FPGA.
