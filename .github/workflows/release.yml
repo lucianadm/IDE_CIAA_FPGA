@@ -27,20 +27,21 @@ jobs:
         with:
           lfs: false
 
-      - name: Construir distribución
+      - name: Construir distribuciones completa y liviana
         shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
           if [[ "$GITHUB_REF" != refs/tags/v* ]]; then version="0.0.0-ci"; fi
-          python scripts/release/build_release.py --platform "${{ matrix.platform }}" --version "$version" --cache "${RUNNER_TEMP}/ciaa-cache" --output dist
+          python scripts/release/build_release.py --platform "${{ matrix.platform }}" --version "$version" --variant complete --cache "${RUNNER_TEMP}/ciaa-cache" --output dist
+          python scripts/release/build_release.py --platform "${{ matrix.platform }}" --version "$version" --variant lite --cache "${RUNNER_TEMP}/ciaa-cache" --output dist
 
       - name: Extraer y probar Windows
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          $archive = Get-ChildItem dist/*Windows_x64.zip -File | Select-Object -First 1
-          Expand-Archive -LiteralPath $archive.FullName -DestinationPath extracted
-          $root = Get-ChildItem extracted -Directory | Select-Object -First 1
+          $archive = Get-ChildItem dist/*Windows_x64_Completa.zip -File | Select-Object -First 1
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath extracted-complete
+          $root = Get-ChildItem extracted-complete -Directory | Select-Object -First 1
           & "$($root.FullName)\scripts\windows\bootstrap.ps1" doctor
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           foreach ($project in @('leds_verilog','leds_vhdl','botones_leds_verilog','botones_leds_vhdl')) {
@@ -48,17 +49,32 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
 
+          $liteArchive = Get-ChildItem dist/*Windows_x64_Liviana.zip -File | Select-Object -First 1
+          Expand-Archive -LiteralPath $liteArchive.FullName -DestinationPath extracted-lite
+          $liteRoot = Get-ChildItem extracted-lite -Directory | Select-Object -First 1
+          New-Item -ItemType Directory -Path "$($liteRoot.FullName)\downloads" -Force | Out-Null
+          Copy-Item -Path "$env:RUNNER_TEMP\ciaa-cache\*" -Destination "$($liteRoot.FullName)\downloads"
+          & "$($liteRoot.FullName)\scripts\windows\bootstrap.ps1" doctor
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Extraer y probar Linux
         if: matrix.platform == 'linux'
         shell: bash
         run: |
-          mkdir extracted
-          tar -xzf dist/*Linux_x64.tar.gz -C extracted
-          root="$(find extracted -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          mkdir extracted-complete
+          tar -xzf dist/*Linux_x64_Completa.tar.gz -C extracted-complete
+          root="$(find extracted-complete -mindepth 1 -maxdepth 1 -type d -print -quit)"
           "$root/IDE_CIAA_FPGA.sh" doctor
           for project in leds_verilog leds_vhdl botones_leds_verilog botones_leds_vhdl; do
             "$root/IDE_CIAA_FPGA.sh" build "$root/examples/$project/project.json" --simulate --no-view
           done
+
+          mkdir extracted-lite
+          tar -xzf dist/*Linux_x64_Liviana.tar.gz -C extracted-lite
+          lite_root="$(find extracted-lite -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          mkdir -p "$lite_root/downloads"
+          cp "${RUNNER_TEMP}"/ciaa-cache/* "$lite_root/downloads/"
+          "$lite_root/IDE_CIAA_FPGA.sh" doctor
 
       - name: Publicar artefacto de la ejecución
         uses: actions/upload-artifact@v4

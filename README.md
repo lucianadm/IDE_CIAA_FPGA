@@ -1,14 +1,28 @@
 # IDE CIAA FPGA
 
-Entorno reproducible para trabajar con la **EDU-CIAA-FPGA** desde Windows o Linux. Permite:
+Entorno reproducible para trabajar con la **EDU-CIAA-FPGA** desde Windows o Linux.
 
 ## Descargar el programa
 
-### [Descargar IDE CIAA FPGA 1.0.1 para Windows x64](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.0.1/IDE_CIAA_FPGA_1.0.1_Windows_x64.zip)
+Elegí la edición correspondiente al sistema operativo y a la conexión disponible:
 
-Para instalar y usar el programa, descargá el paquete anterior o ingresá a la sección [Releases](https://github.com/lucianadm/IDE_CIAA_FPGA/releases). **No uses `Code > Download ZIP` para instalarlo:** esa opción de GitHub contiene solamente el código fuente y no incluye los compiladores ni las herramientas de programación.
+| Sistema | Edición completa | Edición liviana |
+|---|---|---|
+| Windows 10/11 x64 | [Descargar 1.1.0 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.0/IDE_CIAA_FPGA_1.1.0_Windows_x64_Completa.zip) | [Descargar 1.1.0 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.0/IDE_CIAA_FPGA_1.1.0_Windows_x64_Liviana.zip) |
+| Linux x64 | [Descargar 1.1.0 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.0/IDE_CIAA_FPGA_1.1.0_Linux_x64_Completa.tar.gz) | [Descargar 1.1.0 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.0/IDE_CIAA_FPGA_1.1.0_Linux_x64_Liviana.tar.gz) |
+
+- **Completa:** incluye toda la toolchain y puede prepararse y utilizarse sin conexión a Internet.
+- **Liviana:** ocupa mucho menos al descargarla y necesita Internet durante la primera ejecución para obtener y verificar la toolchain. Después conserva las herramientas dentro de su propia carpeta.
+
+### Cómo iniciar
+
+En Windows, extraé el ZIP y ejecutá **`IDE_CIAA_FPGA.bat`**. En Linux, extraé el archivo, abrí una terminal dentro de la carpeta y ejecutá **`./IDE_CIAA_FPGA.sh`**. Con eso alcanza: el iniciador verifica el entorno, prepara las herramientas necesarias y abre el asistente para simular, sintetizar, generar el bitstream y, si se desea, programar la placa.
+
+No uses **`Code > Download ZIP`** para instalar el programa: esa opción de GitHub contiene solamente el código fuente. Las versiones listas para usar se publican en [Releases](https://github.com/lucianadm/IDE_CIAA_FPGA/releases).
 
 Este entorno se basa en la placa, la documentación y los recursos abiertos del proyecto [EDU-CIAA-FPGA de Proyecto CIAA](https://www.proyecto-ciaa.com.ar/devwiki/doku.php%3Fid=desarrollo:edu-fpga.html). La placa fue desarrollada por el Grupo de Investigación y Desarrollo de Sistemas Embebidos (ASE) de la Universidad Tecnológica Nacional, Facultad Regional Haedo.
+
+## Funciones
 
 - simular diseños Verilog/SystemVerilog con Icarus Verilog;
 - simular VHDL 2008 con GHDL;
@@ -19,12 +33,7 @@ Este entorno se basa en la placa, la documentación y los recursos abiertos del 
 - mostrar y guardar un informe de utilización y frecuencia máxima;
 - identificar, respaldar, programar y comparar la Flash con `iceprog`.
 
-El código fuente y las distribuciones listas para usar están separados:
-
-- [Releases](https://github.com/lucianadm/IDE_CIAA_FPGA/releases): paquetes autocontenidos para usar sin Internet, con herramientas y licencias completas.
-- **Code > Download ZIP**: código fuente para desarrollo; no sirve como instalador y no contiene compiladores ni programadores.
-
-Los paquetes de Releases usan exclusivamente las herramientas incluidas en `tools`. No descargan componentes, no necesitan Git LFS y no requieren permisos de administrador para simular, sintetizar o generar un bitstream.
+La edición completa usa exclusivamente las herramientas incluidas en `tools`. La edición liviana descarga los mismos paquetes oficiales, comprueba su SHA-256 y los extrae en `tools` durante la primera ejecución. Ninguna edición necesita Git LFS ni instala la toolchain globalmente en el sistema.
 
 ## Sistemas admitidos
 
@@ -52,9 +61,9 @@ La base abierta utilizada por nextpnr identifica este encapsulado mediante `hx8k
 
 ## Inicio rápido en Windows
 
-1. Descargar `IDE_CIAA_FPGA_<version>_Windows_x64.zip` desde Releases y comprobar su SHA-256 con `SHA256SUMS.txt`.
+1. Descargar `IDE_CIAA_FPGA_<version>_Windows_x64_Completa.zip` o `IDE_CIAA_FPGA_<version>_Windows_x64_Liviana.zip` desde Releases y comprobar su SHA-256 con `SHA256SUMS.txt`.
 2. Extraer todo el ZIP. No requiere una ubicación fija.
-3. Ejecutar `IDE_CIAA_FPGA.bat`.
+3. Ejecutar **`IDE_CIAA_FPGA.bat`**. Ese único archivo verifica y prepara todo lo necesario; la edición liviana necesita Internet la primera vez.
 4. Leer el cartel inicial y elegir VHDL o Verilog/SystemVerilog.
 5. Seleccionar juntos todos los archivos sintetizables del diseño e indicar inmediatamente el top level.
 6. Responder si se quiere ejecutar la simulación funcional RTL. El testbench se solicita solamente cuando la respuesta es afirmativa.
@@ -74,7 +83,7 @@ Para usar la placa, **FT2232H Interface A / MI_00** debe tener WinUSB. **Interfa
 
 ## Inicio rápido en Linux
 
-Descargar `IDE_CIAA_FPGA_<version>_Linux_x64.tar.gz`, comprobar su SHA-256 y extraerlo. Dar permiso de ejecución una sola vez si el sistema de archivos no conservó los permisos:
+Descargar `IDE_CIAA_FPGA_<version>_Linux_x64_Completa.tar.gz` o `IDE_CIAA_FPGA_<version>_Linux_x64_Liviana.tar.gz`, comprobar su SHA-256 y extraerlo. Dar permiso de ejecución una sola vez si el sistema de archivos no conservó los permisos:
 
 ```bash
 chmod +x IDE_CIAA_FPGA.sh scripts/linux/*.sh
@@ -85,6 +94,8 @@ Luego ejecutar:
 ```bash
 ./IDE_CIAA_FPGA.sh
 ```
+
+Ese único archivo verifica y prepara todo lo necesario; la edición liviana necesita Internet la primera vez. En Linux puede solicitar la contraseña de administrador solamente si faltan paquetes básicos del sistema o si se instalan las reglas USB.
 
 Si `iceprog` no tiene permiso para acceder al FT2232H:
 

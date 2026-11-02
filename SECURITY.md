@@ -4,8 +4,10 @@
 
 Las distribuciones ejecutables se publican únicamente en **Releases**:
 
-- `IDE_CIAA_FPGA_<version>_Windows_x64.zip`
-- `IDE_CIAA_FPGA_<version>_Linux_x64.tar.gz`
+- `IDE_CIAA_FPGA_<version>_Windows_x64_Completa.zip`
+- `IDE_CIAA_FPGA_<version>_Windows_x64_Liviana.zip`
+- `IDE_CIAA_FPGA_<version>_Linux_x64_Completa.tar.gz`
+- `IDE_CIAA_FPGA_<version>_Linux_x64_Liviana.tar.gz`
 - `SHA256SUMS.txt`
 
 El botón **Code > Download ZIP** descarga solamente el código fuente. No contiene las herramientas y no debe presentarse como versión instalable.
@@ -22,7 +24,7 @@ No se recomienda desactivar Microsoft Defender ni agregar exclusiones. Si un ant
 
 Se verificaron con Microsoft Defender, firmas `1.463.79.0`, el ZIP de código generado por GitHub y los cuatro archivos oficiales usados para construir las distribuciones. No se detectaron amenazas. Por lo tanto, la detección histórica `Trojan:Script/Wacatac.B!ml` (`ThreatID 2147735503`) no pudo reproducirse ni asociarse a un archivo concreto con esas firmas.
 
-El problema confirmado del esquema anterior era distinto: los binarios estaban registrados con Git LFS, de modo que el ZIP de código de GitHub contenía punteros en lugar de los paquetes reales. Las distribuciones actuales se construyen como assets independientes, contienen los ejecutables completos y se prueban después de extraerlas.
+El problema confirmado del esquema anterior era distinto: los binarios estaban registrados con Git LFS, de modo que el ZIP de código de GitHub contenía punteros en lugar de los paquetes reales. Las distribuciones actuales se construyen como assets independientes y se prueban después de extraerlas. Las ediciones completas contienen la toolchain; las livianas descargan los mismos paquetes oficiales y verifican su SHA-256 antes de extraerlos.
 
 ## Reporte responsable
 

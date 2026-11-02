@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Construye una distribución autocontenida para el sistema anfitrión."""
+"""Construye distribuciones completas o livianas para el sistema anfitrión."""
 
 from __future__ import annotations
 
@@ -69,16 +69,22 @@ def obtain(cache: Path, name: str, url: str, expected: str, offline: bool) -> Pa
     return destination
 
 
-def copy_source(destination: Path) -> None:
+def copy_source(destination: Path, variant: str) -> None:
     ignored = shutil.ignore_patterns(
         ".git", "build", "backups", "downloads", "tools", "dist",
         "__pycache__", ".pytest_cache", "*.pyc",
     )
     shutil.copytree(ROOT, destination, ignore=ignored)
-    (destination / "OFFLINE_BUNDLE").write_text(
-        "Distribucion autocontenida. Los iniciadores no descargan ni reutilizan herramientas externas.\n",
-        encoding="utf-8",
-    )
+    if variant == "complete":
+        (destination / "OFFLINE_BUNDLE").write_text(
+            "Distribucion autocontenida. Los iniciadores no descargan ni reutilizan herramientas externas.\n",
+            encoding="utf-8",
+        )
+    else:
+        (destination / "ONLINE_INSTALLER").write_text(
+            "Distribucion liviana. En la primera ejecucion se descargan y verifican las herramientas necesarias.\n",
+            encoding="utf-8",
+        )
 
 
 def safe_extract_tar(archive: Path, destination: Path) -> None:
@@ -151,18 +157,21 @@ def main() -> int:
     parser.add_argument("--version", required=True)
     parser.add_argument("--cache", type=Path, default=ROOT / "downloads")
     parser.add_argument("--output", type=Path, default=ROOT / "dist")
+    parser.add_argument("--variant", choices=("complete", "lite"), default="complete")
     parser.add_argument("--offline", action="store_true", help="no descargar archivos ausentes")
     args = parser.parse_args()
     if args.platform != host:
         raise RuntimeError("Cada paquete debe construirse en su propio sistema operativo para conservar permisos y probar los binarios.")
     version = args.version.removeprefix("v")
     label = "Windows_x64" if args.platform == "windows" else "Linux_x64"
-    folder_name = f"{PRODUCT}_{version}_{label}"
+    variant_label = "Completa" if args.variant == "complete" else "Liviana"
+    folder_name = f"{PRODUCT}_{version}_{label}_{variant_label}"
     with tempfile.TemporaryDirectory(prefix="ciaa-fpga-release-") as temporary:
         parent = Path(temporary)
         root = parent / folder_name
-        copy_source(root)
-        unpack_tools(args.platform, PACKAGES[args.platform], args.cache.resolve(), root, args.offline)
+        copy_source(root, args.variant)
+        if args.variant == "complete":
+            unpack_tools(args.platform, PACKAGES[args.platform], args.cache.resolve(), root, args.offline)
         archive = create_archive(args.platform, parent, folder_name, args.output.resolve())
     checksum = sha256(archive)
     checksum_file = archive.with_name(archive.name + ".sha256")
