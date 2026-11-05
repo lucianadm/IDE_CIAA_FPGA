@@ -9,11 +9,25 @@ Add-Type -AssemblyName System.Drawing
 
 function Find-Top([string[]]$Files,[string]$Preferred,[string]$Language){
  $names=New-Object System.Collections.Generic.List[string]
+ $referenced=New-Object System.Collections.Generic.List[string]
  $pattern=if($Language -eq 'vhdl'){'(?im)^\s*entity\s+([a-z][a-z0-9_]*)\s+is\b'}else{'(?im)^\s*module\s+([a-z_][a-z0-9_$]*)\b'}
  foreach($file in $Files){
-  foreach($match in [regex]::Matches([IO.File]::ReadAllText($file),$pattern)){
+  $text=[IO.File]::ReadAllText($file)
+  foreach($match in [regex]::Matches($text,$pattern)){
    [void]$names.Add($match.Groups[1].Value)
   }
+  if($Language -eq 'vhdl'){
+   foreach($match in [regex]::Matches($text,'(?im)\bentity\s+work\.([a-z][a-z0-9_]*)\b')){
+    [void]$referenced.Add($match.Groups[1].Value)
+   }
+  }
+ }
+ if($Language -eq 'vhdl'){
+  $topCandidates=@($names | Where-Object {$name=$_;!($referenced | Where-Object {$_ -ieq $name})})
+  $preferredCandidate=@($topCandidates | Where-Object {$_ -ieq $Preferred} | Select-Object -First 1)
+  if($preferredCandidate.Count){return $preferredCandidate[0]}
+  if($topCandidates.Count -eq 1){return $topCandidates[0]}
+  if($topCandidates.Count){return $topCandidates[$topCandidates.Count-1]}
  }
  $same=@($names | Where-Object {$_ -ieq $Preferred} | Select-Object -First 1)
  if($same.Count){return $same[0]}
@@ -85,7 +99,7 @@ function Select-Language {
 }
 
 [void][System.Windows.Forms.MessageBox]::Show(
- "Este asistente permite compilar un diseno VHDL o Verilog para la EDU-CIAA-FPGA.`n`nPrimero seleccione el lenguaje y despues TODOS los archivos fuente del diseno.",
+ "Este asistente permite compilar un diseno VHDL o Verilog para la EDU-CIAA-FPGA.`n`nPrimero seleccione el lenguaje. Para VHDL, el asistente le permitira cargar los archivos del diseno uno por uno.",
  'IDE CIAA FPGA',
  [System.Windows.Forms.MessageBoxButtons]::OK,
  [System.Windows.Forms.MessageBoxIcon]::Information
@@ -98,10 +112,43 @@ $filter=if($language -eq 'vhdl'){'Fuentes VHDL (*.vhd;*.vhdl)|*.vhd;*.vhdl'}else
 $dialog=New-Object System.Windows.Forms.OpenFileDialog
 $dialog.InitialDirectory=$Root
 $dialog.Filter=$filter
-$dialog.Multiselect=$true
-$dialog.Title="Seleccione TODOS los archivos $languageName sintetizables del diseno"
-if($dialog.ShowDialog() -ne 'OK'){throw "Seleccion de archivos $languageName cancelada."}
-$designFiles=@($dialog.FileNames)
+$designFiles=@()
+if($language -eq 'vhdl'){
+ $selectedFiles=New-Object System.Collections.Generic.List[string]
+ while($true){
+  $dialog.Multiselect=$false
+  $dialog.FileName=''
+  $dialog.Title=if($selectedFiles.Count -eq 0){
+   'Seleccione el primer archivo VHDL sintetizable del diseno'
+  } else {
+   'Seleccione otro archivo VHDL sintetizable del diseno'
+  }
+  if($dialog.ShowDialog() -ne 'OK'){throw 'Seleccion de archivos VHDL cancelada.'}
+  $selected=(Resolve-Path -LiteralPath $dialog.FileName).Path
+  if(!$selectedFiles.Contains($selected)){
+   [void]$selectedFiles.Add($selected)
+  } else {
+   [void][System.Windows.Forms.MessageBox]::Show(
+    "Ese archivo ya estaba cargado:`n$selected",
+    'Archivo VHDL repetido',
+    [System.Windows.Forms.MessageBoxButtons]::OK,
+    [System.Windows.Forms.MessageBoxIcon]::Information
+   )
+  }
+  $dialog.InitialDirectory=Split-Path -Parent $selected
+  $loaded=($selectedFiles | ForEach-Object {Split-Path $_ -Leaf}) -join "`n"
+  $loadAnother=Ask-YesNo (
+   "Archivos VHDL cargados:`n`n$loaded`n`nFalta cargar otro archivo VHDL del diseno?"
+  ) 'Archivos del diseno'
+  if(!$loadAnother){break}
+ }
+ $designFiles=@($selectedFiles)
+} else {
+ $dialog.Multiselect=$true
+ $dialog.Title="Seleccione TODOS los archivos $languageName sintetizables del diseno"
+ if($dialog.ShowDialog() -ne 'OK'){throw "Seleccion de archivos $languageName cancelada."}
+ $designFiles=@($dialog.FileNames)
+}
 if(!$designFiles.Count){throw "No se seleccionaron archivos $languageName."}
 
 $top=Find-Top $designFiles ([IO.Path]::GetFileNameWithoutExtension($designFiles[0])) $language
@@ -166,8 +213,17 @@ if($doSimulation){
  }
  $simulationConfig | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $simulationProject -Encoding UTF8
  Write-Host "`nSe ejecutara ahora la simulacion funcional RTL. Todavia no se necesita el archivo PCF." -ForegroundColor Cyan
- & $Python (Join-Path $Root 'src\ciaa_fpga.py') simulate $simulationProject --view 2>&1 | ForEach-Object {Write-Host $_}
- $simulationExit=$LASTEXITCODE
+ $previousErrorAction=$ErrorActionPreference
+ try {
+  # Windows PowerShell convierte cualquier texto de stderr de un programa nativo
+  # en un ErrorRecord cuando se usa 2>&1. GHDL escribe avisos normales allí y,
+  # con Stop, la IDE se detenía mostrando solamente "py.exe :".
+  $ErrorActionPreference='Continue'
+  & $Python (Join-Path $Root 'src\ciaa_fpga.py') simulate $simulationProject --view
+  $simulationExit=$LASTEXITCODE
+ } finally {
+  $ErrorActionPreference=$previousErrorAction
+ }
  if($simulationExit -ne 0){throw "La simulacion funcional fallo (codigo $simulationExit). No se solicitara el PCF."}
  Write-Host 'Simulacion funcional finalizada. A continuacion comienza la preparacion de la sintesis.' -ForegroundColor Green
 }

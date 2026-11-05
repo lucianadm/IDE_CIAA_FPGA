@@ -1,6 +1,8 @@
-# IDE CIAA FPGA 1.1.1
+# IDE CIAA FPGA 1.1.2
 
-Corrige la apertura de GTKWave en Windows. La IDE genera un archivo de visualización compatible, carga automáticamente las señales y abre la forma de onda sin depender del soporte Tcl del ejecutable.
+Corrige la simulación VHDL iniciada desde el asistente de Windows. Los mensajes de GHDL ahora se muestran completos y ya no se interrumpe el proceso con el mensaje genérico `py.exe : NativeCommandError`.
+
+La carga de fuentes VHDL se realiza archivo por archivo. Después de cada selección, la IDE muestra los nombres cargados y pregunta si falta agregar otro. Cuando el usuario termina, analiza las relaciones entre las entidades y propone un top level sin depender del orden de selección. La IDE no agrega archivos ni supone dependencias automáticamente.
 
 Esta versión ofrece dos distribuciones para Windows x64 y Linux x64:
 

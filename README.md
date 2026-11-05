@@ -8,8 +8,8 @@ Elegí la edición correspondiente al sistema operativo y a la conexión disponi
 
 | Sistema | Edición completa | Edición liviana |
 |---|---|---|
-| Windows 10/11 x64 | [Descargar 1.1.1 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.1/IDE_CIAA_FPGA_1.1.1_Windows_x64_Completa.zip) | [Descargar 1.1.1 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.1/IDE_CIAA_FPGA_1.1.1_Windows_x64_Liviana.zip) |
-| Linux x64 | [Descargar 1.1.1 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.1/IDE_CIAA_FPGA_1.1.1_Linux_x64_Completa.tar.gz) | [Descargar 1.1.1 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.1/IDE_CIAA_FPGA_1.1.1_Linux_x64_Liviana.tar.gz) |
+| Windows 10/11 x64 | [Descargar 1.1.2 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.2/IDE_CIAA_FPGA_1.1.2_Windows_x64_Completa.zip) | [Descargar 1.1.2 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.2/IDE_CIAA_FPGA_1.1.2_Windows_x64_Liviana.zip) |
+| Linux x64 | [Descargar 1.1.2 completa](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.2/IDE_CIAA_FPGA_1.1.2_Linux_x64_Completa.tar.gz) | [Descargar 1.1.2 liviana](https://github.com/lucianadm/IDE_CIAA_FPGA/releases/download/v1.1.2/IDE_CIAA_FPGA_1.1.2_Linux_x64_Liviana.tar.gz) |
 
 - **Completa:** incluye toda la toolchain y puede prepararse y utilizarse sin conexión a Internet.
 - **Liviana:** ocupa mucho menos al descargarla y necesita Internet durante la primera ejecución para obtener y verificar la toolchain. Después conserva las herramientas dentro de su propia carpeta.
@@ -65,13 +65,13 @@ La base abierta utilizada por nextpnr identifica este encapsulado mediante `hx8k
 2. Extraer todo el ZIP. No requiere una ubicación fija.
 3. Ejecutar **`IDE_CIAA_FPGA.bat`**. Ese único archivo verifica y prepara todo lo necesario; la edición liviana necesita Internet la primera vez.
 4. Leer el cartel inicial y elegir VHDL o Verilog/SystemVerilog.
-5. Seleccionar juntos todos los archivos sintetizables del diseño e indicar inmediatamente el top level.
+5. En VHDL, cargar los archivos sintetizables uno por uno. Después de cada archivo, el asistente muestra la lista y pregunta si falta agregar otro. Al finalizar propone el top level detectado, que se puede aceptar o corregir. En Verilog/SystemVerilog se pueden seleccionar juntos todos los fuentes.
 6. Responder si se quiere ejecutar la simulación funcional RTL. El testbench se solicita solamente cuando la respuesta es afirmativa.
 7. Revisar el diagrama temporal, que se abre automáticamente si la simulación termina correctamente.
 8. Seleccionar el archivo PCF, sintetizar, rutear y generar el bitstream. Para llegar hasta este punto no es necesario conectar la placa.
 9. Revisar el informe de síntesis y elegir `Programar FPGA` o `No programar`. Solo la primera opción intenta acceder al dispositivo.
 
-El selector admite varios archivos tanto para el diseño como para el testbench. La primera simulación es funcional RTL y no necesita el PCF. Después de una simulación correcta abre automáticamente el diagrama temporal. En VHDL también pregunta la duración máxima. En Verilog agrega un envoltorio de simulación que genera el archivo VCD aunque el testbench no incluya `$dumpfile` y `$dumpvars`. Se conservan los comandos de consola para automatizar el flujo mediante un `project.json`.
+El selector admite varios archivos tanto para el diseño como para el testbench. En VHDL no supone nombres ni agrega dependencias automáticamente: el usuario confirma cuándo terminó de cargar los fuentes. La detección del top level analiza qué entidades son utilizadas por las demás, por lo que no depende del orden de selección. La primera simulación es funcional RTL y no necesita el PCF. Después de una simulación correcta abre automáticamente el diagrama temporal. En VHDL también pregunta la duración máxima. En Verilog agrega un envoltorio de simulación que genera el archivo VCD aunque el testbench no incluya `$dumpfile` y `$dumpvars`. Se conservan los comandos de consola para automatizar el flujo mediante un `project.json`.
 
 El diagrama temporal de la simulación RTL no contiene los retardos físicos del FPGA. Durante el ruteo, nextpnr realiza análisis temporal estático y comprueba si el diseño cumple la frecuencia indicada en `frequency_mhz`. Este flujo no genera una simulación post-ruteo con retardos anotados.
 
